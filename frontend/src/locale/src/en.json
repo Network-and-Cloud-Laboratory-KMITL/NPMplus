@@ -735,7 +735,7 @@
 		"defaultMessage": "Sign in"
 	},
 	"sign-in-with-oidc": {
-		"defaultMessage": "Sign in with OIDC"
+		"defaultMessage": "Sign in with NaCl Auth"
 	},
 	"ssl-certificate": {
 		"defaultMessage": "TLS Certificate"
