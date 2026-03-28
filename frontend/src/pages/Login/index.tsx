@@ -200,14 +200,14 @@ function LoginForm() {
 
 export default function Login() {
 	const { twoFactorChallenge } = useAuthState();
-	const health = useHealth();
+	// const health = useHealth();
 
-	const getVersion = () => {
-		if (!health.data) {
-			return "";
-		}
-		return health.data.version;
-	};
+	// const getVersion = () => {
+	// 	if (!health.data) {
+	// 		return "";
+	// 	}
+	// 	return health.data.version;
+	// };
 
 	return (
 		<Page className="page page-center">
