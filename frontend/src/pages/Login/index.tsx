@@ -222,7 +222,8 @@ export default function Login() {
 				<div className="card card-md">
 					<div className="card-body">{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}</div>
 				</div>
-				<div className="text-center text-secondary mt-3">{getVersion()}</div>
+				<div className="text-center text-secondary mt-3">Username & Password login is not enabled. Please use NaCl Auth to login.</div>
+				{/* <div className="text-center text-secondary mt-3">{getVersion()}</div> */}
 			</div>
 		</Page>
 	);
