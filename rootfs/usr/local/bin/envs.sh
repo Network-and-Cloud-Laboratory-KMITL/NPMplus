@@ -77,6 +77,15 @@ export ACME_OCSP_STAPLING="${ACME_OCSP_STAPLING:-false}"
 export ACME_PROFILE="${ACME_PROFILE:-none}"
 
 export ACME_KEY_TYPE="${ACME_KEY_TYPE:-ecdsa}"
+case "$ACME_KEY_TYPE" in
+    ecdsa)
+        export ACME_KEY_SIZE="${ACME_KEY_SIZE:-secp384r1}"
+        ;;
+    rsa)
+        export ACME_KEY_SIZE="${ACME_KEY_SIZE:-4096}"
+        ;;
+esac
+
 export ACME_SERVER_TLS_VERIFY="${ACME_SERVER_TLS_VERIFY:-true}"
 
 export CUSTOM_OCSP_STAPLING="${CUSTOM_OCSP_STAPLING:-false}"
@@ -102,6 +111,7 @@ export LISTEN_PROXY_PROTOCOL="${LISTEN_PROXY_PROTOCOL:-false}"
 export LISTEN_PROXY_PROTOCOL_HTTP="${LISTEN_PROXY_PROTOCOL_HTTP:-false}"
 export LISTEN_PROXY_PROTOCOL_HTTPS="${LISTEN_PROXY_PROTOCOL_HTTPS:-false}"
 export DISABLE_H3_QUIC="${DISABLE_H3_QUIC:-false}"
+export ENABLE_MPTCP="${ENABLE_MPTCP:-false}"
 export NGINX_QUIC_BPF="${NGINX_QUIC_BPF:-false}"
 export NGINX_LOG_NOT_FOUND="${NGINX_LOG_NOT_FOUND:-false}"
 export NGINX_WORKER_PROCESSES="${NGINX_WORKER_PROCESSES:-auto}"
@@ -109,11 +119,12 @@ export NGINX_WORKER_CONNECTIONS="${NGINX_WORKER_CONNECTIONS:-512}"
 export NGINX_FORCE_X25519MLKEM768="${NGINX_FORCE_X25519MLKEM768:-false}"
 export NGINX_DISABLE_TLS12="${NGINX_DISABLE_TLS12:-false}"
 export NGINX_TRUST_SECPR1="${NGINX_TRUST_SECPR1:-true}"
+export NGINX_TRUST_RSA_PKCS1="${NGINX_TRUST_RSA_PKCS1:-false}"
 export DISABLE_NGINX_BEAUTIFIER="${DISABLE_NGINX_BEAUTIFIER:-false}"
 export TRUST_CLOUDFLARE="${TRUST_CLOUDFLARE:-false}"
 export LOGROTATE="${LOGROTATE:-false}"
 export LOGROTATIONS="${LOGROTATIONS:-3}"
-export CRT="${CRT:-3}"
+export CERTBOT_RUN_INTERVAL="${CERTBOT_RUN_INTERVAL:-3}"
 export ECH_ROTATION_INTERVAL="${ECH_ROTATION_INTERVAL:-1}"
 export GOA="${GOA:-false}"
 export GOACLA="${GOACLA:-"--agent-list --real-os --double-decode --anonymize-ip --anonymize-level=1 --keep-last=30 --with-output-resolver --no-query-string"}"
@@ -130,7 +141,11 @@ export NGINX_LOAD_NTLM_MODULE="${NGINX_LOAD_NTLM_MODULE:-false}"
 export NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE="${NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE:-false}"
 export OIDC_REQUIRE_VERIFIED_EMAIL="${OIDC_REQUIRE_VERIFIED_EMAIL:-true}"
 export OIDC_DISABLE_PASSWORD="${OIDC_DISABLE_PASSWORD:-false}"
-export AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES="${AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES:-false}"
+if [ -s /data/anubis/happy.webp ] && [ -s /data/anubis/reject.webp ] && [ -s /data/anubis/pensive.webp ]; then
+    export AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES="${AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES:-true}"
+else
+    export AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES="${AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES:-false}"
+fi
 
 
 #tmp
@@ -215,8 +230,26 @@ if [ -n "$NGINX_404_REDIRECT" ]; then
 fi
 
 #tmp
+if [ -n "$AUTH_REQUEST_AUTHENTIK_DOMAIN" ]; then
+    echo "AUTH_REQUEST_AUTHENTIK_DOMAIN env is not supported anymore."
+    sleep inf
+fi
+
+#tmp
+if [ -n "$AUTH_REQUEST_TINYAUTH_DOMAIN" ]; then
+    echo "AUTH_REQUEST_TINYAUTH_DOMAIN env is not supported anymore."
+    sleep inf
+fi
+
+#tmp
 if [ -n "$SKIP_IP_RANGES" ]; then
     echo "SKIP_IP_RANGES env is not supported anymore, please use TRUST_CLOUDFLARE"
+    sleep inf
+fi
+
+#tmp
+if [ -n "$CRT" ]; then
+    echo "CRT env is not supported anymore, please use CERTBOT_RUN_INTERVAL"
     sleep inf
 fi
 
@@ -254,6 +287,12 @@ fi
 #upstream
 if [ -n "$IP_RANGES_FETCH_ENABLED" ]; then
     echo "IP_RANGES_FETCH_ENABLED env is not supported, please use TRUST_CLOUDFLARE"
+    sleep inf
+fi
+
+#upstream
+if [ -n "$NPM_ADMIN_PORT" ]; then
+    echo "NPM_ADMIN_PORT env is not supported, please use NPM_PORT"
     sleep inf
 fi
 
@@ -306,6 +345,16 @@ if ! echo "$ACME_KEY_TYPE" | grep -q "^ecdsa$\|^rsa$"; then
     sleep inf
 fi
 
+if [ "$ACME_KEY_TYPE" = "ecdsa" ] && ! echo "$ACME_KEY_SIZE" | grep -q "^secp256r1$\|^secp384r1$\|^secp521r1$"; then
+    echo "ACME_KEY_SIZE for ecdsa needs to be secp256r1, secp384r1, or secp521r1."
+    sleep inf
+fi
+
+if [ "$ACME_KEY_TYPE" = "rsa" ] && ! echo "$ACME_KEY_SIZE" | grep -q "^2048$\|^3072$\|^4096$"; then
+    echo "ACME_KEY_SIZE for rsa needs to be 2048, 3072, or 4096."
+    sleep inf
+fi
+
 if ! echo "$ACME_SERVER_TLS_VERIFY" | grep -q "^true$\|^false$"; then
     echo "ACME_SERVER_TLS_VERIFY needs to be true or false."
     sleep inf
@@ -317,8 +366,12 @@ if ! echo "$CUSTOM_OCSP_STAPLING" | grep -q "^true$\|^false$"; then
 fi
 
 if [ "$ACME_PROFILE" != "none" ] && [ "$(curl -sSL "$ACME_SERVER" | jq .meta.profiles."$ACME_PROFILE")" = "null" ]; then
-    echo "The ACME_PROFILE seems to be not supported by the ACME_SERVER."
-    sleep inf
+    if [ "$(curl -sSL "$ACME_SERVER" | jq -r ".newNonce")" != "null" ]; then
+        echo "The ACME_PROFILE seems to be not supported by the ACME_SERVER."
+        sleep inf
+	else
+        echo "Cannot check if the ACME_PROFILE is supported by the ACME_SERVER since the ACME_SERVER is down."
+    fi
 fi
 
 
@@ -457,6 +510,11 @@ if ! echo "$DISABLE_H3_QUIC" | grep -q "^true$\|^false$"; then
     sleep inf
 fi
 
+if ! echo "$ENABLE_MPTCP" | grep -q "^true$\|^false$"; then
+    echo "ENABLE_MPTCP needs to be true or false."
+    sleep inf
+fi
+
 if ! echo "$NGINX_QUIC_BPF" | grep -q "^true$\|^false$"; then
     echo "NGINX_QUIC_BPF needs to be true or false."
     sleep inf
@@ -486,6 +544,11 @@ if ! echo "$NGINX_TRUST_SECPR1" | grep -q "^true$\|^false$"; then
     sleep inf
 fi
 
+if ! echo "$NGINX_TRUST_RSA_PKCS1" | grep -q "^true$\|^false$"; then
+    echo "NGINX_TRUST_RSA_PKCS1 needs to be true or false."
+    sleep inf
+fi
+
 if ! echo "$NGINX_DISABLE_TLS12" | grep -q "^true$\|^false$"; then
     echo "NGINX_DISABLE_TLS12 needs to be true or false."
     sleep inf
@@ -511,8 +574,8 @@ if [ -n "$LOGROTATIONS" ] && ! echo "$LOGROTATIONS" | grep -q "^[0-9]\+$"; then
     sleep inf
 fi
 
-if ! echo "$CRT" | grep -q "^[0-9]\+$"; then
-    echo "CRT needs to be a number."
+if ! echo "$CERTBOT_RUN_INTERVAL" | grep -q "^[0-9]\+$" || [ "$CERTBOT_RUN_INTERVAL" -ge 500 ]; then
+    echo "CERTBOT_RUN_INTERVAL must be a number below 500."
     sleep inf
 fi
 
@@ -685,51 +748,38 @@ elif [ "$OIDC_DISABLE_PASSWORD" = "true" ] && [ -z "$OIDC_REDIRECT_DOMAIN" ] && 
 fi
 
 
-if [ -n "$AUTH_REQUEST_ANUBIS_UPSTREAM" ] && ! echo "$AUTH_REQUEST_ANUBIS_UPSTREAM" | grep -q "^https\?://[^/]\+$"; then
-    echo "AUTH_REQUEST_ANUBIS_UPSTREAM is not allowed to contain a path."
-    sleep inf
-fi
-
 if ! echo "$AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES" | grep -q "^true$\|^false$"; then
     echo "AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES needs to be true or false."
     sleep inf
 fi
 
-
-if { [ -n "$AUTH_REQUEST_TINYAUTH_UPSTREAM" ] || [ -n "$AUTH_REQUEST_TINYAUTH_DOMAIN" ]; } && { [ -z "$AUTH_REQUEST_TINYAUTH_UPSTREAM" ] || [ -z "$AUTH_REQUEST_TINYAUTH_DOMAIN" ]; }; then
-    echo "You need to set AUTH_REQUEST_TINYAUTH_UPSTREAM and AUTH_REQUEST_TINYAUTH_DOMAIN (both are needed) or none of them."
+if [ -n "$AUTH_REQUEST_ANUBIS_UPSTREAM" ] && ! echo "$AUTH_REQUEST_ANUBIS_UPSTREAM" | grep -q "^https\?://\([^/:]\+\|\[[a-fA-F0-9:]\+\]\):[0-9]\+$"; then
+    echo "AUTH_REQUEST_ANUBIS_UPSTREAM needs to contain the scheme, the target ip/domain/hostname and port but is not allowed to contain a path."
     sleep inf
 fi
 
-if [ -n "$AUTH_REQUEST_TINYAUTH_UPSTREAM" ] && ! echo "$AUTH_REQUEST_TINYAUTH_UPSTREAM" | grep -q "^https\?://[^/]\+$"; then
-    echo "AUTH_REQUEST_TINYAUTH_UPSTREAM is not allowed to contain a path."
+if [ -n "$AUTH_REQUEST_TINYAUTH_UPSTREAM" ] && ! echo "$AUTH_REQUEST_TINYAUTH_UPSTREAM" | grep -q "^https\?://\([^/:]\+\|\[[a-fA-F0-9:]\+\]\):[0-9]\+$"; then
+    echo "AUTH_REQUEST_TINYAUTH_UPSTREAM needs to contain the scheme, the target ip/domain/hostname and port but is not allowed to contain a path."
     sleep inf
 fi
 
-if [ -n "$AUTH_REQUEST_TINYAUTH_DOMAIN" ] && echo "$AUTH_REQUEST_TINYAUTH_DOMAIN" | grep -q "/"; then
-    echo "AUTH_REQUEST_TINYAUTH_DOMAIN must not contain /."
+if [ -n "$AUTH_REQUEST_OAUTH2PROXY_UPSTREAM" ] && ! echo "$AUTH_REQUEST_OAUTH2PROXY_UPSTREAM" | grep -q "^https\?://\([^/:]\+\|\[[a-fA-F0-9:]\+\]\):[0-9]\+$"; then
+    echo "AUTH_REQUEST_OAUTH2PROXY_UPSTREAM needs to contain the scheme, the target ip/domain/hostname and port but is not allowed to contain a path."
     sleep inf
 fi
 
-
-if [ -n "$AUTH_REQUEST_AUTHELIA_UPSTREAM" ] && ! echo "$AUTH_REQUEST_AUTHELIA_UPSTREAM" | grep -q "^https\?://[^/]\+$"; then
-    echo "AUTH_REQUEST_AUTHELIA_UPSTREAM is not allowed to contain a path."
+if [ -n "$AUTH_REQUEST_VOIDAUTH_UPSTREAM" ] && ! echo "$AUTH_REQUEST_VOIDAUTH_UPSTREAM" | grep -q "^https\?://\([^/:]\+\|\[[a-fA-F0-9:]\+\]\):[0-9]\+$"; then
+    echo "AUTH_REQUEST_VOIDAUTH_UPSTREAM needs to contain the scheme, the target ip/domain/hostname and port but is not allowed to contain a path."
     sleep inf
 fi
 
-
-if [ -n "$AUTH_REQUEST_AUTHENTIK_DOMAIN" ] && [ -z "$AUTH_REQUEST_AUTHENTIK_UPSTREAM" ]; then
-    echo "You need to set AUTH_REQUEST_AUTHENTIK_UPSTREAM if you set AUTH_REQUEST_AUTHENTIK_DOMAIN."
+if [ -n "$AUTH_REQUEST_AUTHELIA_UPSTREAM" ] && ! echo "$AUTH_REQUEST_AUTHELIA_UPSTREAM" | grep -q "^https\?://\([^/:]\+\|\[[a-fA-F0-9:]\+\]\):[0-9]\+$"; then
+    echo "AUTH_REQUEST_AUTHELIA_UPSTREAM needs to contain the scheme, the target ip/domain/hostname and port but is not allowed to contain a path."
     sleep inf
 fi
 
-if [ -n "$AUTH_REQUEST_AUTHENTIK_UPSTREAM" ] && ! echo "$AUTH_REQUEST_AUTHENTIK_UPSTREAM" | grep -q "^https\?://[^/]\+$"; then
-    echo "AUTH_REQUEST_AUTHENTIK_UPSTREAM is not allowed to contain a path."
-    sleep inf
-fi
-
-if [ -n "$AUTH_REQUEST_AUTHENTIK_DOMAIN" ] && echo "$AUTH_REQUEST_AUTHENTIK_DOMAIN" | grep -q "/"; then
-    echo "AUTH_REQUEST_AUTHENTIK_DOMAIN must not contain /."
+if [ -n "$AUTH_REQUEST_AUTHENTIK_UPSTREAM" ] && ! echo "$AUTH_REQUEST_AUTHENTIK_UPSTREAM" | grep -q "^https\?://\([^/:]\+\|\[[a-fA-F0-9:]\+\]\):[0-9]\+$"; then
+    echo "AUTH_REQUEST_AUTHENTIK_UPSTREAM needs to contain the scheme, the target ip/domain/hostname and port but is not allowed to contain a path."
     sleep inf
 fi
 
@@ -774,7 +824,7 @@ if [ "$GOA" = "true" ] && [ "$LOGROTATE" = "false" ]; then
 fi
 
 
-export TV="12"
+export TV="18"
 if [ ! -s /data/npmplus/env.sha512sum ] || [ "$(cat /data/npmplus/env.sha512sum)" != "$( (grep "env\.[A-Z0-9_]\+" -roh /app/templates | sed "s|env.||g" | sort | uniq | xargs printenv; echo "$TV") | tr -d "\n" | sha512sum | cut -d" " -f1)" ]; then
     echo "At least one env or the template version changed, all hosts will be regenerated. Please make sure to read the changelog."
     export REGENERATE_ALL="true"

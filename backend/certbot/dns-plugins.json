@@ -108,8 +108,8 @@
 		"package_name": "certbot-dns-digitalocean"
 	},
 	"directadmin": {
-		"credentials": "directadmin_url = https://my.directadminserver.com:2222\ndirectadmin_username = username\ndirectadmin_password = aSuperStrongPassword",
-		"full_plugin_name": "directadmin",
+		"credentials": "dns_directadmin_url = https://my.directadminserver.com:2222\ndns_directadmin_username = username\ndns_directadmin_password = aSuperStrongPassword",
+		"full_plugin_name": "dns-directadmin",
 		"name": "DirectAdmin",
 		"package_name": "certbot-dns-directadmin"
 	},
@@ -174,7 +174,7 @@
 		"package_name": "certbot-plugin-edgedns"
 	},
 	"eurodns": {
-		"credentials": "dns_eurodns_applicationId = myuser\ndns_eurodns_apiKey = mysecretpassword\ndns_eurodns_endpoint = https://rest-api.eurodns.com/user-api-gateway/proxy",
+		"credentials": "dns_eurodns_applicationId = myuser\ndns_eurodns_apiKey = mysecretpassword\ndns_eurodns_endpoint = https://rest-api.eurodns.com/dns-zones/",
 		"full_plugin_name": "dns-eurodns",
 		"name": "EuroDNS",
 		"package_name": "certbot-dns-eurodns"
@@ -251,6 +251,12 @@
 		"name": "Hetzner Cloud",
 		"package_name": "certbot-dns-hetzner-cloud"
 	},
+	"hostinger": {
+		"credentials": "dns_hostinger_api_token = 0123456789abcdef0123456789abcdef",
+		"full_plugin_name": "dns-hostinger",
+		"name": "Hostinger.com",
+		"package_name": "certbot-dns-hostinger"
+	},	
 	"hostingnl": {
 		"credentials": "dns_hostingnl_api_key = 0123456789abcdef0123456789abcdef",
 		"full_plugin_name": "dns-hostingnl",
@@ -262,6 +268,12 @@
 		"full_plugin_name": "dns-hover",
 		"name": "Hover",
 		"package_name": "certbot-dns-hover"
+	},
+	"hosterby": {
+  		"credentials": "dns_hosterby_access_key = YOUR_ACCESS_KEY\ndns_hosterby_secret_key = YOUR_SECRET_KEY",
+  		"full_plugin_name": "dns-hosterby",
+  		"name": "hoster.by",
+  		"package_name": "certbot-dns-hosterby"
 	},
 	"infomaniak": {
 		"credentials": "dns_infomaniak_token = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -282,10 +294,10 @@
 		"package_name": "certbot-dns-ionos"
 	},
 	"ispconfig": {
-		"credentials": "certbot_dns_ispconfig:dns_ispconfig_username = myremoteuser\ncertbot_dns_ispconfig:dns_ispconfig_password = verysecureremoteuserpassword\ncertbot_dns_ispconfig:dns_ispconfig_endpoint = https://you.ipsconfig.host:8080/remote/json.php",
-		"full_plugin_name": "certbot-dns-ispconfig:dns-ispconfig",
+		"credentials": "dns_ispconfig_username = myremoteuser\ndns_ispconfig_password = verysecureremoteuserpassword\ndns_ispconfig_endpoint = https://you.ipsconfig.host:8080/remote/json.php",
+		"full_plugin_name": "dns-ispconfig",
 		"name": "ISPConfig",
-		"package_name": "certbot-dns-ispconfig"
+		"package_name": "certbot-v4-dns-ispconfig"
 	},
 	"isset": {
 		"credentials": "dns_isset_endpoint=\"https://customer.isset.net/api\"\ndns_isset_token=\"<token>\"",
@@ -496,5 +508,11 @@
 		"full_plugin_name": "dns-zoneedit",
 		"name": "ZoneEdit",
 		"package_name": "certbot-dns-zoneedit"
+	},
+	"rcode0": {
+		"credentials": "dns_rcode0_api_key = acme_0123456789abcdef0123456789abcdef01234567",
+		"full_plugin_name": "dns-rcode0",
+		"name": "RcodeZero",
+		"package_name": "certbot-dns-rcode0"
 	}
 }

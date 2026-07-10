@@ -9,7 +9,8 @@
 		"domain_names",
 		"forward_host",
 		"forward_port",
-		"access_list_id",
+		"npmplus_access_list_ids",
+		"npmplus_access_list_type",
 		"certificate_id",
 		"ssl_forced",
 		"caching_enabled",
@@ -33,7 +34,10 @@
 		"npmplus_upstream_compression",
 		"npmplus_fancyindex",
 		"npmplus_x_frame_options",
-		"npmplus_auth_request"
+		"npmplus_auth_request",
+		"npmplus_auth_request_upstream",
+		"npmplus_disable_uri_sanitisation",
+		"npmplus_spoof_host_header"
 	],
 	"properties": {
 		"id": {
@@ -64,8 +68,11 @@
 			"maximum": 65535,
 			"example": 8080
 		},
-		"access_list_id": {
-			"$ref": "../common.json#/properties/access_list_id"
+		"npmplus_access_list_ids":{
+			"$ref": "../common.json#/properties/npmplus_access_list_ids"
+		},
+		"npmplus_access_list_type": {
+			"$ref": "../common.json#/properties/npmplus_host_access_list_type"
 		},
 		"certificate_id": {
 			"$ref": "../common.json#/properties/certificate_id"
@@ -94,6 +101,12 @@
 		"npmplus_proxy_response_buffering": {
 			"$ref": "../common.json#/properties/npmplus_proxy_response_buffering"
 		},
+		"npmplus_disable_uri_sanitisation": {
+			"$ref": "../common.json#/properties/npmplus_disable_uri_sanitisation"
+		},
+		"npmplus_spoof_host_header": {
+			"$ref": "../common.json#/properties/npmplus_spoof_host_header"
+		},
 		"npmplus_upstream_compression": {
 			"$ref": "../common.json#/properties/npmplus_upstream_compression"
 		},
@@ -116,11 +129,17 @@
 				"none",
 				"anubis",
 				"tinyauth",
+				"oauth2proxy",
+				"voidauth",
 				"authelia",
 				"authentik",
 				"authentik-send-basic-auth"
 			],
 			"example": "none"
+		},
+		"npmplus_auth_request_upstream": {
+			"type": "string",
+			"example": ""
 		},
 		"advanced_config": {
 			"type": "string",
@@ -167,7 +186,9 @@
 					"forward_scheme",
 					"forward_host",
 					"forward_port",
-					"path"
+					"path",
+					"npmplus_access_list_ids",
+					"npmplus_access_list_type"
 				],
 				"additionalProperties": false,
 				"properties": {
@@ -230,6 +251,12 @@
 					"npmplus_proxy_response_buffering": {
 						"$ref": "#/properties/npmplus_proxy_response_buffering"
 					},
+					"npmplus_disable_uri_sanitisation": {
+						"$ref": "#/properties/npmplus_disable_uri_sanitisation"
+					},
+					"npmplus_spoof_host_header": {
+						"$ref": "#/properties/npmplus_spoof_host_header"
+					},
 					"npmplus_upstream_compression": {
 						"$ref": "#/properties/npmplus_upstream_compression"
 					},
@@ -242,11 +269,20 @@
 					"npmplus_auth_request": {
 						"$ref": "#/properties/npmplus_auth_request"
 					},
+					"npmplus_auth_request_upstream": {
+						"$ref": "#/properties/npmplus_auth_request_upstream"
+					},
 					"advanced_config": {
 						"type": "string"
 					},
 					"npmplus_location_config": {
 						"type": "string"
+					},
+					"npmplus_access_list_ids":{
+						"$ref": "../common.json#/properties/npmplus_access_list_ids"
+					},
+					"npmplus_access_list_type": {
+						"$ref": "../common.json#/properties/npmplus_location_access_list_type"
 					}
 				}
 			},
@@ -255,7 +291,9 @@
 					"path": "/app",
 					"forward_scheme": "http",
 					"forward_host": "example.com",
-					"forward_port": 80
+					"forward_port": 80,
+					"npmplus_access_list_ids": [1, 2],
+					"npmplus_access_list_type": "custom"
 				}
 			]
 		},
@@ -285,17 +323,13 @@
 		"owner": {
 			"$ref": "./user-object.json"
 		},
-		"access_list": {
-			"oneOf": [
-				{
-					"type": "null",
-					"example": null
-				},
-				{
-					"$ref": "./access-list-object.json"
-				}
-			],
-			"example": null
+		"access_lists": {
+			"type": "array",
+			"minItems": 0,
+			"items": {
+				"$ref": "./access-list-object.json"
+			},
+			"example": []
 		}
 	}
 }

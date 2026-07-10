@@ -199,7 +199,7 @@ const internalDeadHost = {
 		}
 
 		const row = await query.then(utils.omitRow(omissions()));
-		if (!row || !row.id) {
+		if (!row?.id) {
 			throw new errs.ItemNotFoundError(data.id);
 		}
 		// Custom omissions
@@ -219,7 +219,7 @@ const internalDeadHost = {
 	delete: async (access, data) => {
 		await access.can("dead_hosts:delete", data.id);
 		const row = await internalDeadHost.get(access, { id: data.id });
-		if (!row || !row.id) {
+		if (!row?.id) {
 			throw new errs.ItemNotFoundError(data.id);
 		}
 
@@ -254,12 +254,26 @@ const internalDeadHost = {
 			id: data.id,
 			expand: ["certificate", "owner"],
 		});
-		if (!row || !row.id) {
+		if (!row?.id) {
 			throw new errs.ItemNotFoundError(data.id);
 		}
 		if (row.enabled) {
 			throw new errs.ValidationError("Host is already enabled");
 		}
+
+		const domainNameCheckPromises = [];
+		row.domain_names.map((domain_name) => {
+			domainNameCheckPromises.push(internalHost.isHostnameTaken(domain_name));
+			return true;
+		});
+		await Promise.all(domainNameCheckPromises).then((checkResults) => {
+			checkResults.map((result) => {
+				if (result.is_taken) {
+					throw new errs.ValidationError(`${result.hostname} is already in use by an active host`);
+				}
+				return true;
+			});
+		});
 
 		row.enabled = 1;
 
@@ -290,7 +304,7 @@ const internalDeadHost = {
 	disable: async (access, data) => {
 		await access.can("dead_hosts:update", data.id);
 		const row = await internalDeadHost.get(access, { id: data.id });
-		if (!row || !row.id) {
+		if (!row?.id) {
 			throw new errs.ItemNotFoundError(data.id);
 		}
 		if (!row.enabled) {

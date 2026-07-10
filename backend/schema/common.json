@@ -77,7 +77,7 @@
 			"example": 3
 		},
 		"domain_names": {
-			"description": "Domain Names separated by a comma",
+			"description": "Domain Names array",
 			"type": "array",
 			"minItems": 1,
 			"maxItems": 99,
@@ -113,7 +113,7 @@
 		},
 		"ssl_provider": {
 			"type": "string",
-			"pattern": "^(letsencrypt|other)$",
+			"pattern": "^(letsencrypt|other|mtls)$",
 			"example": "letsencrypt"
 		},
 		"http2_support": {
@@ -158,6 +158,14 @@
 		},
 		"npmplus_proxy_response_buffering": {
 			"description": "Disable Response Buffering",
+			"type": "boolean",
+			"example": false
+		},
+		"npmplus_disable_uri_sanitisation": {
+			"type": "boolean",
+			"example": false
+		},
+		"npmplus_spoof_host_header": {
 			"type": "boolean",
 			"example": false
 		},
@@ -239,6 +247,28 @@
 					"directive": "allow",
 					"address": "192.168.0.0/24"
 				}
+			]
+		},
+		"npmplus_access_list_ids": {
+			"type": "array",
+			"items": {
+				"type": "integer",
+				"minimum": 1
+			}
+		},
+		"npmplus_host_access_list_type": {
+			"type": "string",
+			"enum": [
+				"public",
+				"custom"
+			]
+		},
+		"npmplus_location_access_list_type": {
+			"type": "string",
+			"enum": [
+				"global",
+				"public",
+				"custom"
 			]
 		},
 		"certificate_files": {

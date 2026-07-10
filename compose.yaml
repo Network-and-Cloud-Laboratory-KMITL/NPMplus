@@ -2,18 +2,26 @@ name: npmplus
 services:
   npmplus:
     container_name: npmplus
-    image: docker.io/zoeyvid/npmplus:latest # or ghcr.io/zoeyvid/npmplus:latest
     restart: unless-stopped
+    image: docker.io/zoeyvid/npmplus:latest # or ghcr.io/zoeyvid/npmplus:latest
+    pull_policy: always
     network_mode: host
 #    ipc: host # required when you want to use the openappsec attachment module
-#    cap_add: # required if you set NGINX_QUIC_BPF to true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - SETGID
 #      - BPF # required if you set NGINX_QUIC_BPF to true
 #      - PERFMON # required if you set NGINX_QUIC_BPF to true
 #      - NET_ADMIN # required if you set NGINX_QUIC_BPF to true
-#    ulimits: # may be required if you set NGINX_QUIC_BPF to true
-#      memlock: # may be required if you set NGINX_QUIC_BPF to true
-#        soft: -1 # may be required if you set NGINX_QUIC_BPF to true
-#        hard: -1 # may be required if you set NGINX_QUIC_BPF to true
+#      - SETUID # required if you change PUID/PGID or you enable the inbuilt php-fpm
+#      - CHOWN # required if you change PUID/PGID
+#      - FOWNER # required if you change PUID/PGID
+#      - DAC_OVERRIDE # required if you change PUID/PGID
+#      - NET_RAW # required if you need the ping command inside the NPMplus container
+    security_opt:
+      - no-new-privileges:true
 #    dns: # only set this if you need/want to override the default DNS server
 #      - 192.168.1.1 # default for unifi/opnsense/pfsense
 #      - 192.168.8.1 # default for glinet
@@ -29,7 +37,7 @@ services:
 #      - "shm-volume:/dev/shm/check-point" # required if you want to use the openappsec attachment module, also enable this volume at the end of this compose.yaml
     environment:
       - "TZ=your-timezone" # set timezone, required, set it to one of the values from the "TZ identifier" https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List
-#      - "ACME_EMAIL=your-email" # email address to use for acme, optional for letsencrypt, but required for zerossl and google public ca
+#      - "ACME_EMAIL=your-email" # email address to use for acme, required for zerossl and google public ca
 #      - "ACME_SERVER=https://dv.acme-v02.api.pki.goog/directory (google public ca) / https://acme.zerossl.com/v2/DV90 (zerossl)" # acme server used when requesting/renewing certs using certbot, default: https://acme-v02.api.letsencrypt.org/directory (letsencrypt)
 #      - "ACME_EAB_KID=123456789abcdef" # Key Identifier for External Account Binding for the acme server, not supported by letsencrypt, optional for zerossl (Login on their site => Developer), but required for google public ca: https://cloud.google.com/certificate-manager/docs/public-ca-tutorial?hl=de#request-key-hmac
 #      - "ACME_EAB_HMAC_KEY=123456789abcdef" # HMAC key for External Account Binding for the acme server, not supported by letsencrypt, optional for zerossl (Login on their site => Developer), but required for google public ca: https://cloud.google.com/certificate-manager/docs/public-ca-tutorial?hl=de#request-key-hmac
@@ -37,6 +45,7 @@ services:
 #      - "ACME_MUST_STAPLE=true" # enables must-staple, default false (default is true when using zerossl), I recommend enabling this if your CA supports it, supported by zerossl, google public ca ignores this, unsupported by letsencrypt (will fail), overrides ACME_OCSP_STAPLING to true
 #      - "ACME_OCSP_STAPLING=true" # enables ocsp stapling, default false (default is true when using google public ca or zerossl), I recommend enabling this if your CA supports it, supported by zerossl and google public ca, this will disable tls certificate compression
 #      - "ACME_KEY_TYPE=rsa" # which key type to use ecdsa or rsa, default and recommended: ecdsa
+#      - "ACME_KEY_SIZE=2048" # key size for ACME cert, for ecdsa: secp256r1, secp384r1, secp521r1 (default and recommended: secp384r1), for rsa: 2048, 3072, 4096 (default and recommended: 4096)
 #      - "ACME_SERVER_TLS_VERIFY=false" # enables checking if ACME_SERVER has a valid TLS cert, default and recommended true
 #      - "CUSTOM_OCSP_STAPLING=true" # enables ocsp stapling for custom certs, default false, I recommend enabling this if your custom certs support it, this will disable tls certificate compression
 #      - "PUID=1000" # set user id, needs to be a number greater or equal to 99, or equal to 0, default 0 (root), if network mode host is used and PUID changed, you may need to set sysctl net.ipv4.ip_unprivileged_port_start=0 to bind ports like 80 or 443, please note that this will allow all non-root services to bind ports below 1024
@@ -60,18 +69,20 @@ services:
 #      - "LISTEN_PROXY_PROTOCOL_HTTP=true" # should listeners of http hosts (proxy/redirect/dead and default) use proxy protocol instead of http? default false
 #      - "LISTEN_PROXY_PROTOCOL_HTTPS=true" # should listeners of https hosts (proxy/redirect/dead and default) use proxy protocol instead of https? default false, overrides DISABLE_H3_QUIC to true
 #      - "DISABLE_H3_QUIC=true" # prevents nginx from listening on port 443 udp for default host and all your hosts, this will fully disable HTTP/3 and QUIC, even if you enable it inside the UI, not recommended, default false
-#      - "NGINX_QUIC_BPF=true" # enables nginx's quic_bpf (https://nginx.org/en/docs/http/ngx_http_v3_module.html#quic_bpf), you must also add caps to the NPMplus container (see cap_add of this compose file) to use this, default false
+#      - "ENABLE_MPTCP=true" # enables multipathtcp, required network_mode host, recommended, default false
+#      - "NGINX_QUIC_BPF=true" # enables nginx's quic_bpf (https://nginx.org/en/docs/http/ngx_http_v3_module.html#quic_bpf), you must also add caps to the NPMplus container (see cap_add of this compose file) to use this, recommended, default false
 #      - "NGINX_LOG_NOT_FOUND=true" # Log 404 errors to the docker logs, unrelated to access logs, default false
 #      - "NGINX_WORKER_PROCESSES=8" # value of worker_processes, default and recommended: auto
 #      - "NGINX_WORKER_CONNECTIONS=1024" # value of worker_connections, default: 512
 #      - "NGINX_FORCE_X25519MLKEM768=true" # forces usage of X25519MLKEM768 by disabling everything else (including TLS1.2), default false (overrides NGINX_DISABLE_TLS12 to true and NGINX_TRUST_SECPR1 to false), please note that browsers most browsers support it, but other application may not support this
 #      - "NGINX_DISABLE_TLS12=true" # disabled TLS1.2, default false, TLS1.2 can still be assumed to be secure with the settings NPMplus uses, but if you know all your clients support TLS1.3 this allows you to disable it
-#      - "NGINX_TRUST_SECPR1=false" # enables secp521r1:secp384r1:secp256r1, default true, disable if all your clients support X25519MLKEM768 or x25519
+#      - "NGINX_TRUST_SECPR1=false" # enables secp521r1:secp384r1:secp256r1 ecdh curves, default true, disable if all your clients support X25519MLKEM768 or x25519
+#      - "NGINX_TRUST_RSA_PKCS1=true" # enables rsa_pkcs1_sha512:rsa_pkcs1_sha384:rsa_pkcs1_sha256 sigalgs, default false, enable if your use a RSA key and your client doesn't support RSA-PSS sigalgs
 #      - "DISABLE_NGINX_BEAUTIFIER=true" # disables nginxbeautifier, useful when it fails parsing non-standard custom/advanced configs, default false
 #      - "LOGROTATE=true" # Enables writing http access logs to /opt/npmplus/nginx/logs/access.log, stream access logs to /opt/npmplus/nginx/logs/stream.log and enables daily logrotation, default false
 #      - "LOGROTATIONS=7" # Set how often the access.log should be rotated until it is deleted, default 3
 #      - "TRUST_CLOUDFLARE=true" # Enables fetching/whitelisting IPs from cloudflare, so nginx will see the real client IPs, default false
-#      - "CRT=72" # Set how many hours should be between certbot trying to renew your certs, default 3
+#      - "CERTBOT_RUN_INTERVAL=72" # Set how many hours should be between certbot trying to renew your certs if needed, default 3
 #      - "ECH_ROTATION_INTERVAL=3" # Set how many hours should be between the runs of your ech cron script, default 1
 #      - "GOA=true" # Enables goaccess (and overrides LOGROTATE to true), default false --- if you download the GeoLite2-Country.mmdb, GeoLite2-City.mmdb AND GeoLite2-ASN.mmdb file from MaxMind and place them in /opt/npmplus/goaccess/geoip it will automatically enable GeoIP in goaccess after restarting NPMplus (no need to change GOACLA below), you may also enable the geoipupdate container below (please change the timezone)
 #      - "GOACLA=--agent-list --real-os --double-decode --anonymize-ip --anonymize-level=2 --keep-last=7 --with-output-resolver --no-query-string" # Arguments that should be passed to goaccess, default: --agent-list --real-os --double-decode --anonymize-ip --anonymize-level=1 --keep-last=30 --with-output-resolver --no-query-string
@@ -102,18 +113,18 @@ services:
 #      - "OIDC_REQUIRE_VERIFIED_EMAIL=false" # requires the email sent by the OIDC Provider to be marked as verified, default true
 #      - "OIDC_DISABLE_PASSWORD=true" # disables plain email/password login, default false
 #      - "AUTH_REQUEST_ANUBIS_UPSTREAM=http://127.0.0.1:8923" # scheme + ip/hostname/domain (+ port) to internal anubis, without path, this is unrelated to OIDC
-#      - "AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES=true" # set to true if you want to replace the default "allow", "checking" and "blocked" image, default false, if enabled you need to put your custom images as happy.webp, pensive.webp and reject.webp to /opt/npmplus/anubis
 #      - "AUTH_REQUEST_TINYAUTH_UPSTREAM=http://127.0.0.1:3000" # scheme + ip/hostname/domain (+ port) to internal tinyauth, without path, this is unrelated to OIDC
-#      - "AUTH_REQUEST_TINYAUTH_DOMAIN=tinyauth.example.org" # domain/ip (+ port) to public tinyauth, without scheme and without path, this is unrelated to OIDC
+#      - "AUTH_REQUEST_OAUTH2PROXY_UPSTREAM=http://127.0.0.1:4180" # scheme + ip/hostname/domain (+ port) to internal oauth2proxy, without path, this is unrelated to OIDC
+#      - "AUTH_REQUEST_VOIDAUTH_UPSTREAM=http://127.0.0.1:3000" # scheme + ip/hostname/domain (+ port) to internal oauth2proxy, without path, this is unrelated to OIDC
 #      - "AUTH_REQUEST_AUTHELIA_UPSTREAM=http://127.0.0.1:9091" # scheme + ip/hostname/domain (+ port) to internal authelia, without path, this is unrelated to OIDC
 #      - "AUTH_REQUEST_AUTHENTIK_UPSTREAM=https://127.0.0.1:9443" # scheme + ip/hostname/domain (+ port) to internal authentik, without path, currently only works with embedded outpost, this is unrelated to OIDC
-#      - "AUTH_REQUEST_AUTHENTIK_DOMAIN=authentik.example.org" # domain/ip (+ port) to public authentik, without scheme and without path, currently only works with embedded outpost, this is unrelated to OIDC
 
 # This can be used to enable crowdsec, see README for a guide
 #  crowdsec:
 #    container_name: crowdsec
-#    image: docker.io/crowdsecurity/crowdsec:latest
 #    restart: unless-stopped
+#    image: docker.io/crowdsecurity/crowdsec:latest
+#    pull_policy: always
 #    network_mode: bridge
 #    ports:
 #      - "127.0.0.1:7422:7422"
@@ -131,14 +142,15 @@ services:
 # See the readme on how to configure your proxy hosts to use anubis and what needs to be changes in the botPolicy to make it work
 #  anubis:
 #    container_name: npmplus-anubis
-#    image: ghcr.io/techarohq/anubis:latest
 #    restart: unless-stopped
+#    image: ghcr.io/techarohq/anubis:latest
+#    pull_policy: always
 #    network_mode: bridge
 #    ports:
 #      - "127.0.0.1:8923:8923"
 #    environment:
 #      - "TZ=your-timezone" # needs to be changed
-#      - "TARGET= " # important to be set to a space
+#      - "TARGET= " # important: this needs to be and stay one single space
 #      - "POLICY_FNAME=/etc/botPolicies.yaml" # required so the status codes can be changed
 #    volumes:
 #      - "/opt/anubis.yaml:/etc/botPolicies.yaml:ro" # since a file is mounted here, you first need to create it before deploying this container, you can download the default file from here: https://raw.githubusercontent.com/TecharoHQ/anubis/refs/heads/main/data/botPolicies.yaml
@@ -146,8 +158,9 @@ services:
 # This can be used with GOA=true to keep the geoip database updated, environment variables must be configured
 #  geoipupdate:
 #    container_name: npmplus-geoipupdate
-#    image: ghcr.io/maxmind/geoipupdate:latest
 #    restart: unless-stopped
+#    image: ghcr.io/maxmind/geoipupdate:latest
+#    pull_policy: always
 #    network_mode: bridge
 #    environment:
 #      - "TZ=your-timezone" # needs to be changed
@@ -161,8 +174,9 @@ services:
 # This can be used to run openappsec, you must also set NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE to true and set ipc for NPMplus
 #  openappsec-agent:
 #    container_name: openappsec-agent
-#    image: ghcr.io/openappsec/agent:latest
 #    restart: unless-stopped
+#    image: ghcr.io/openappsec/agent:latest
+#    pull_policy: always
 #    ipc: host
 #    volumes:
 #      - "shm-volume:/dev/shm/check-point"
@@ -185,8 +199,9 @@ services:
 # uncomment if you don't set AGENT_TOKEN
 #  openappsec-smartsync:
 #    container_name: openappsec-smartsync
-#    image: ghcr.io/openappsec/smartsync:latest
 #    restart: unless-stopped
+#    image: ghcr.io/openappsec/smartsync:latest
+#    pull_policy: always
 #    environment:
 #      - "TZ=your-timezone" # needs to be changed
 #      - "SHARED_STORAGE_HOST=openappsec-shared-storage"
@@ -194,8 +209,9 @@ services:
 #      - openappsec-shared-storage
 #  openappsec-shared-storage:
 #    container_name: openappsec-shared-storage
-#    image: ghcr.io/openappsec/smartsync-shared-files:latest
 #    restart: unless-stopped
+#    image: ghcr.io/openappsec/smartsync-shared-files:latest
+#    pull_policy: always
 #    ipc: service:openappsec-agent
 #    user: root # if you do not want to run this container as "root" user you can comment it out and instead run the following command after the deployment: docker exec -u root openappsec-shared-storage chown -R appuser:appuser /db
 #    environment:
@@ -204,8 +220,9 @@ services:
 #      - "/opt/openappsec/storage:/db"
 #  openappsec-tuning-svc:
 #    container_name: openappsec-tuning-svc
-#    image: ghcr.io/openappsec/smartsync-tuning:latest
 #    restart: unless-stopped
+#    image: ghcr.io/openappsec/smartsync-tuning:latest
+#    pull_policy: always
 #    environment:
 #      - "TZ=your-timezone" # needs to be changed
 #      - "SHARED_STORAGE_HOST=openappsec-shared-storage"
@@ -219,8 +236,9 @@ services:
 #      - openappsec-db
 #  openappsec-db:
 #    container_name: openappsec-db
-#    image: postgres:17-alpine
 #    restart: unless-stopped
+#    image: postgres:17-alpine
+#    pull_policy: always
 #    environment:
 #      - "TZ=your-timezone" # needs to be changed
 #      - "POSTGRES_PASSWORD=password" # replace with something secure, should match QUERY_DB_PASSWORD from openappsec-tuning-svc container
@@ -231,8 +249,9 @@ services:
 # This can be used with DISABLE_HTTP=true, to force HTTPS redirects for every host
 #  npmplus-caddy:
 #    container_name: npmplus-caddy
-#    image: docker.io/zoeyvid/npmplus:caddy
 #    restart: unless-stopped
+#    image: docker.io/zoeyvid/npmplus:caddy
+#    pull_policy: always
 #    network_mode: bridge
 #    ports:
 #      - "80:80"

@@ -1,11 +1,10 @@
-import { IconSettings } from "@tabler/icons-react";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { Field, Form, Formik } from "formik";
 import { type ReactNode, useState } from "react";
 import { Alert } from "react-bootstrap";
 import Modal from "react-bootstrap/Modal";
-import { Button, Loading, NginxConfigField, SSLCertificateField } from "src/components";
-import { useSetStream, useStream } from "src/hooks";
+import { Button, DirectoryField, Loading, NginxConfigField, SSLCertificateField } from "src/components";
+import { useDirectorySuggestions, useSetStream, useStream, useStreams } from "src/hooks";
 import { intl, T } from "src/locale";
 import { validateString } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
@@ -19,6 +18,8 @@ interface Props extends InnerModalProps {
 }
 const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 	const { data, isLoading, error } = useStream(id);
+	const { data: allStreams } = useStreams();
+	const suggestions = useDirectorySuggestions(allStreams);
 	const { mutate: setStream } = useSetStream();
 	const [errorMsg, setErrorMsg] = useState<ReactNode | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,9 +29,22 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		setIsSubmitting(true);
 		setErrorMsg(null);
 
+		const meta = { ...(values.meta || {}) };
+		if (typeof meta.directory === "string") {
+			const trimmed = meta.directory.trim();
+			if (trimmed) {
+				meta.directory = trimmed;
+			} else {
+				delete meta.directory;
+			}
+		} else {
+			delete meta.directory;
+		}
+
 		const { ...payload } = {
 			id: id === "new" ? undefined : id,
 			...values,
+			meta,
 			forwardingPort: values.forwardingPort || null,
 		};
 
@@ -116,9 +130,10 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 											<li className="nav-item" role="presentation">
 												<a
 													href="#tab-ssl"
-													className="nav-link"
-													data-bs-toggle="tab"
+													className={`nav-link ${values.udpForwarding ? "disabled" : ""}`}
+													data-bs-toggle={values.udpForwarding ? undefined : "tab"}
 													aria-selected="false"
+													aria-disabled={values.udpForwarding}
 													tabIndex={-1}
 													role="tab"
 												>
@@ -135,7 +150,8 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 													tabIndex={-1}
 													role="tab"
 												>
-													<IconSettings size={20} />
+													<T id="domains.advanced" />
+													{values?.npmplusAdvancedConfig?.trim() ? "*" : ""}
 												</a>
 											</li>
 										</ul>
@@ -346,6 +362,14 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 																								"certificateId",
 																								0,
 																							);
+																							setFieldValue(
+																								"meta.npmplusMtlsCertificateId",
+																								0,
+																							);
+																							setFieldValue(
+																								"meta.npmplusMtlsVerifyClientOptional",
+																								false,
+																							);
 																						}
 
 																						if (!e.target.checked) {
@@ -436,12 +460,53 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 													allowNew={false}
 													forHttp={false}
 												/>
+												<div className="row">
+													<div className="col-12">
+														<Field name="meta.npmplusMtlsVerifyClientOptional">
+															{({ field }: any) => (
+																<label className="form-check form-switch mt-1">
+																	<input
+																		className="form-check-input"
+																		type="checkbox"
+																		checked={
+																			values?.meta
+																				?.npmplusMtlsVerifyClientOptional ===
+																			true
+																		}
+																		onChange={(e) => {
+																			setFieldValue(field.name, e.target.checked);
+																		}}
+																		disabled={
+																			!(
+																				values?.certificateId > 0 &&
+																				values?.meta?.npmplusMtlsCertificateId >
+																					0
+																			) || values?.udpForwarding
+																		}
+																	/>
+																	<span className="form-check-label">
+																		<T id="domains.mtls-verify-client-optional" />
+																	</span>
+																</label>
+															)}
+														</Field>
+													</div>
+												</div>
 											</div>
 											<div className="tab-pane" id="tab-advanced" role="tabpanel">
 												<NginxConfigField
 													name="npmplusAdvancedConfig"
 													id="npmplusAdvancedConfig"
 												/>
+												<div className="row">
+													<div className="col-md-12 mb-3">
+														<DirectoryField
+															labelId="stream.directory"
+															datalistId="directory-suggestions-stream"
+															suggestions={suggestions}
+														/>
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>

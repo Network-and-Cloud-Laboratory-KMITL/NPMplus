@@ -89,6 +89,7 @@ export interface Certificate {
 	proxyHosts?: ProxyHost[];
 	deadHosts?: DeadHost[];
 	redirectionHosts?: RedirectionHost[];
+	streams?: Stream[];
 }
 
 export interface ProxyLocation {
@@ -99,6 +100,7 @@ export interface ProxyLocation {
 	forwardScheme: string;
 	forwardHost: string;
 	forwardPort: number;
+	npmplusAccessListIds: number[];
 	cachingEnabled: boolean;
 	blockExploits: boolean;
 	allowWebsocketUpgrade: boolean;
@@ -106,10 +108,16 @@ export interface ProxyLocation {
 	npmplusCrowdsecAppsec: boolean;
 	npmplusProxyResponseBuffering: boolean;
 	npmplusProxyRequestBuffering: boolean;
+	npmplusDisableUriSanitisation: boolean;
+	npmplusSpoofHostHeader: boolean;
 	npmplusUpstreamCompression: boolean;
 	npmplusFancyindex: boolean;
 	npmplusXFrameOptions: string;
 	npmplusAuthRequest: string;
+	npmplusAuthRequestUpstream: string;
+	accessLists?: AccessList[];
+	npmplusAccessListType: ProxyHost["npmplusAccessListType"] | "global";
+	id?: number | null;
 }
 
 export interface ProxyHost {
@@ -121,7 +129,7 @@ export interface ProxyHost {
 	forwardScheme: string;
 	forwardHost: string;
 	forwardPort: number;
-	accessListId: number;
+	npmplusAccessListIds: number[];
 	certificateId: number;
 	sslForced: boolean;
 	cachingEnabled: boolean;
@@ -139,16 +147,20 @@ export interface ProxyHost {
 	trustForwardedProto: boolean;
 	// Expansions:
 	owner?: User;
-	accessList?: AccessList;
+	accessLists?: AccessList[];
+	npmplusAccessListType: "public" | "custom";
 	certificate?: Certificate;
 	npmplusNoindex: boolean;
 	npmplusCrowdsecAppsec: boolean;
 	npmplusProxyResponseBuffering: boolean;
 	npmplusProxyRequestBuffering: boolean;
+	npmplusDisableUriSanitisation: boolean;
+	npmplusSpoofHostHeader: boolean;
 	npmplusUpstreamCompression: boolean;
 	npmplusFancyindex: boolean;
 	npmplusXFrameOptions: string;
 	npmplusAuthRequest: string;
+	npmplusAuthRequestUpstream: string;
 }
 
 export interface DeadHost {

@@ -2,6 +2,13 @@
 
 if [ "$ACME_KEY_TYPE" = "rsa" ]; then
     sed -i "s|key-type = ecdsa|key-type = rsa|g" /etc/certbot.ini
+    if [ "$ACME_KEY_SIZE" != "4096" ]; then
+        sed -i "s|rsa-key-size = .*|rsa-key-size = $ACME_KEY_SIZE|g" /etc/certbot.ini
+    fi
+else
+    if [ "$ACME_KEY_SIZE" != "secp384r1" ]; then
+        sed -i "s|elliptic-curve = .*|elliptic-curve = $ACME_KEY_SIZE|g" /etc/certbot.ini
+    fi
 fi
 if [ "$ACME_MUST_STAPLE" = "false" ]; then
     sed -i "s|must-staple = true|must-staple = false|g" /etc/certbot.ini
@@ -112,8 +119,9 @@ mkdir -p /tmp/npmhome \
          /tmp/certbot-credentials
 mkdir -vp /data/npmplus/gravatar \
           /data/tls/certbot/renewal \
-          /data/tls/certbot/acme-challenge \
+          /data/tls/certbot/acme-challenge/.well-known/acme-challenge \
           /data/tls/custom \
+          /data/tls/mtls \
           /data/tls/ech \
           /data/html \
           /data/access \
@@ -385,6 +393,11 @@ else
     sed -i "s|#\?listen \[::\]:91 |listen $GOA_IPV6_BINDING:$GOA_PORT |g" /usr/local/nginx/conf/conf.d/goaccess.conf.disabled
 fi
 
+if [ "$ENABLE_MPTCP" = "false" ]; then
+    sed -i "s| multipath||g" /usr/local/nginx/conf/conf.d/npmplus.conf
+    sed -i "s| multipath||g" /usr/local/nginx/conf/conf.d/goaccess.conf.disabled
+fi
+
 if [ "$GOA" = "true" ]; then
     mkdir -vp /data/goaccess/data /data/goaccess/geoip
     cp -van /usr/local/nginx/conf/conf.d/goaccess.conf.disabled /usr/local/nginx/conf/conf.d/goaccess.conf
@@ -413,6 +426,13 @@ if [ "$NGINX_DISABLE_TLS12" = "true" ]; then
 fi
 if [ "$NGINX_TRUST_SECPR1" = "false" ]; then
     sed -i "s|X25519MLKEM768:x25519:secp521r1:secp384r1:prime256v1;|X25519MLKEM768:x25519;|g" /usr/local/nginx/conf/nginx.conf
+fi
+if [ "$NGINX_TRUST_RSA_PKCS1" = "true" ]; then
+    sed -i "s|mldsa87:mldsa65:mldsa44:ed25519:ecdsa_secp521r1_sha512:ecdsa_secp384r1_sha384:ecdsa_secp256r1_sha256:rsa_pss_rsae_sha512:rsa_pss_rsae_sha384:rsa_pss_rsae_sha256;|mldsa87:mldsa65:mldsa44:ed25519:ecdsa_secp521r1_sha512:ecdsa_secp384r1_sha384:ecdsa_secp256r1_sha256:rsa_pss_rsae_sha512:rsa_pss_rsae_sha384:rsa_pss_rsae_sha256:rsa_pkcs1_sha512:rsa_pkcs1_sha384:rsa_pkcs1_sha256;|g" /usr/local/nginx/conf/nginx.conf
+fi
+
+if [ ! -s "/data/tls/ech/cron.sh" ] && grep -q '^[^#]*ssl_ech_file' /usr/local/nginx/conf/nginx.conf; then
+    sed -i "s|ssl_ech_file|#ssl_ech_file|g" /usr/local/nginx/conf/nginx.conf
 fi
 
 if [ "$NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE" = "true" ]; then
@@ -466,6 +486,15 @@ find /data/tls \
      /data/access \
      /data/npmplus \
      /data/nginx/logs \
+     -type d \
+     -not -perm 700 \
+     -exec chmod 700 {} \;
+
+find /data/tls \
+     /data/access \
+     /data/npmplus \
+     /data/nginx/logs \
+     -type f \
      -not -perm 600 \
      -exec chmod 600 {} \;
 
@@ -473,33 +502,31 @@ rm -vf /usr/local/nginx/logs/nginx.pid
 rm -vf /run/*.sock
 
 if [ "$PUID" != "0" ]; then
-    if id -u npm > /dev/null 2>&1; then
-        usermod -u "$PUID" npm
+    if [ -n "$(getent group "$PGID" 2>/dev/null)" ]; then
+        :
+    elif [ -n "$(getent group npmplus 2>/dev/null)" ]; then
+        groupmod -g "$PGID" npmplus
     else
-        useradd -o -u "$PUID" -U -d /tmp/npmhome -s /sbin/nologin npm
+        groupadd -g "$PGID" npmplus
     fi
-    if [ -z "$(getent group npm | cut -d: -f3)" ]; then
-        groupadd -f -g "$PGID" npm
+
+    if [ -n "$(getent passwd "$PUID" 2>/dev/null)" ]; then
+        :
+    elif [ -n "$(getent passwd npmplus 2>/dev/null)" ]; then
+        usermod -u "$PUID" -g "$PGID" -G "" -d /tmp npmplus
     else
-        groupmod -o -g "$PGID" npm
+        useradd -u "$PUID" -g "$PGID" -M -d /tmp -s /sbin/nologin npmplus
     fi
-    groupmod -o -g "$PGID" npm
-    if [ "$(getent group npm | cut -d: -f3)" != "$PGID" ]; then
-        echo "ERROR: Unable to set group id properly"
-        sleep inf
-    fi
-    usermod -G "$PGID" npm
-    if [ "$(id -g npm)" != "$PGID" ] ; then
-        echo "ERROR: Unable to set group against the user properly"
-        sleep inf
-    fi
+
     find /usr/local \
          /data \
          /run \
          /tmp \
          -not \( -uid "$PUID" -and -gid "$PGID" \) \
-         -exec chown "$PUID:$PGID" {} \;
+         -print0 \
+         | xargs -r0 -P "$(($(nproc)*4))" -n 50 chown "$PUID:$PGID" 
     chown "$PUID:$PGID" /proc/self/fd/2
+
     if [ "$PHP83" = "true" ]; then
         sed -i "s|;\?user =.*|;user = root|" /data/php/83/php-fpm.d/www.conf
         sed -i "s|;\?group =.*|;group = root|" /data/php/83/php-fpm.d/www.conf
@@ -512,10 +539,11 @@ if [ "$PUID" != "0" ]; then
         sed -i "s|;\?user =.*|;user = root|" /data/php/85/php-fpm.d/www.conf
         sed -i "s|;\?group =.*|;group = root|" /data/php/85/php-fpm.d/www.conf
     fi
-    sed -i "s|user root;|#user root;|g" /usr/local/nginx/conf/nginx.conf
+
     exec su-exec "$PUID:$PGID" launch.sh
 else
-    find /data -not \( -uid 0 -and -gid 0 \) -exec chown 0:0 {} \;
+    find /data -not \( -uid 0 -and -gid 0 \) -print0 | xargs -r0 -P "$(($(nproc)*4))" -n 50 chown 0:0
+
     if [ "$PHP83" = "true" ]; then
         sed -i "s|;user =.*|user = root|" /data/php/83/php-fpm.d/www.conf
         sed -i "s|;group =.*|group = root|" /data/php/83/php-fpm.d/www.conf
@@ -528,6 +556,6 @@ else
         sed -i "s|;user =.*|user = root|" /data/php/85/php-fpm.d/www.conf
         sed -i "s|;group =.*|group = root|" /data/php/85/php-fpm.d/www.conf
     fi
-    sed -i "s|#user root;|user root;|g"  /usr/local/nginx/conf/nginx.conf
+
     exec launch.sh
 fi

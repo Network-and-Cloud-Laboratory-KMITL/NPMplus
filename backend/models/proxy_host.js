@@ -29,6 +29,8 @@ const boolFields = [
 	"npmplus_proxy_response_buffering",
 	"npmplus_upstream_compression",
 	"npmplus_fancyindex",
+	"npmplus_disable_uri_sanitisation",
+	"npmplus_spoof_host_header",
 ];
 
 class ProxyHost extends Model {
@@ -45,6 +47,16 @@ class ProxyHost extends Model {
 		if (typeof this.meta === "undefined") {
 			this.meta = {};
 		}
+
+		// Default for access list type
+		if (typeof this.npmplus_access_list_type === "undefined") {
+			this.npmplus_access_list_type = "public";
+		}
+
+		// Default for access list ids
+		if (typeof this.npmplus_access_list_ids === "undefined") {
+			this.npmplus_access_list_ids = [];
+		}
 	}
 
 	$beforeUpdate() {
@@ -57,7 +69,7 @@ class ProxyHost extends Model {
 	}
 
 	$formatDatabaseJson(json) {
-		const thisJson = convertBoolFieldsToInt(json, boolFields);
+		const thisJson = convertBoolFieldsToInt({ ...json }, boolFields);
 		return super.$formatDatabaseJson(thisJson);
 	}
 
@@ -70,15 +82,15 @@ class ProxyHost extends Model {
 	}
 
 	static get jsonAttributes() {
-		return ["domain_names", "meta", "locations"];
+		return ["domain_names", "meta", "locations", "npmplus_access_list_ids"];
 	}
 
 	static get defaultAllowGraph() {
-		return "[owner,access_list.[clients,items],certificate]";
+		return "[owner,access_lists.[clients,items],certificate]";
 	}
 
 	static get defaultExpand() {
-		return ["owner", "certificate", "access_list.[clients,items]"];
+		return ["owner", "certificate", "access_lists.[clients,items]"];
 	}
 
 	static get defaultOrder() {
@@ -98,11 +110,15 @@ class ProxyHost extends Model {
 					qb.where("user.is_deleted", 0);
 				},
 			},
-			access_list: {
-				relation: Model.HasOneRelation,
+			access_lists: {
+				relation: Model.ManyToManyRelation,
 				modelClass: AccessList,
 				join: {
-					from: "proxy_host.access_list_id",
+					from: "proxy_host.id",
+					through: {
+						from: "npmplus_proxy_host_access_list.proxy_host_id",
+						to: "npmplus_proxy_host_access_list.access_list_id",
+					},
 					to: "access_list.id",
 				},
 				modify: (qb) => {

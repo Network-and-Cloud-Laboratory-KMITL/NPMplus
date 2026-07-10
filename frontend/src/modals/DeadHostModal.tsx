@@ -1,4 +1,3 @@
-import { IconSettings } from "@tabler/icons-react";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { Form, Formik } from "formik";
 import { type ReactNode, useState } from "react";
@@ -6,13 +5,14 @@ import { Alert } from "react-bootstrap";
 import Modal from "react-bootstrap/Modal";
 import {
 	Button,
+	DirectoryField,
 	DomainNamesField,
 	Loading,
 	NginxConfigField,
 	SSLCertificateField,
 	SSLOptionsFields,
 } from "src/components";
-import { useDeadHost, useSetDeadHost } from "src/hooks";
+import { useDeadHost, useDeadHosts, useDirectorySuggestions, useSetDeadHost } from "src/hooks";
 import { T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
 
@@ -26,6 +26,8 @@ interface Props extends InnerModalProps {
 const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 	const { data, isLoading, error } = useDeadHost(id);
 	const { mutate: setDeadHost } = useSetDeadHost();
+	const { data: allDeadHosts } = useDeadHosts();
+	const suggestions = useDirectorySuggestions(allDeadHosts);
 	const [errorMsg, setErrorMsg] = useState<ReactNode | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,9 +36,22 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		setIsSubmitting(true);
 		setErrorMsg(null);
 
+		const meta = { ...(values.meta || {}) };
+		if (typeof meta.directory === "string") {
+			const trimmed = meta.directory.trim();
+			if (trimmed) {
+				meta.directory = trimmed;
+			} else {
+				delete meta.directory;
+			}
+		} else {
+			delete meta.directory;
+		}
+
 		const { ...payload } = {
 			id: id === "new" ? undefined : id,
 			...values,
+			meta,
 		};
 
 		setDeadHost(payload, {
@@ -90,7 +105,7 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 					}
 					onSubmit={onSubmit}
 				>
-					{() => (
+					{({ values }: any) => (
 						<Form>
 							<Modal.Header closeButton>
 								<Modal.Title>
@@ -137,7 +152,8 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 													tabIndex={-1}
 													role="tab"
 												>
-													<IconSettings size={20} />
+													<T id="domains.advanced" />
+													{values?.advancedConfig?.trim() ? "" : ""}
 												</a>
 											</li>
 										</ul>
@@ -157,6 +173,15 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 											</div>
 											<div className="tab-pane" id="tab-advanced" role="tabpanel">
 												<NginxConfigField />
+												<div className="row">
+													<div className="col-md-12 mb-3">
+														<DirectoryField
+															labelId="dead-host.directory"
+															datalistId="directory-suggestions-dead"
+															suggestions={suggestions}
+														/>
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>

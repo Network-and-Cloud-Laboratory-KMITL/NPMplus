@@ -1,7 +1,6 @@
 import _ from "lodash";
 import crypto from "node:crypto";
-import fs from "node:fs";
-import { pipeline } from "node:stream/promises";
+import { writeFile } from "node:fs/promises";
 import errs from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { gravatar as logger } from "../logger.js";
@@ -81,7 +80,8 @@ const internalUser = {
 						throw new Error();
 				}
 
-				await pipeline(response.body, fs.createWriteStream(`/data/npmplus/gravatar/${hash}.${ext}`));
+				const buffer = await response.arrayBuffer();
+				await writeFile(`/data/npmplus/gravatar/${hash}.${ext}`, Buffer.from(buffer));
 
 				data.avatar = `/images/gravatar/${hash}.${ext}`;
 			} catch (err) {
@@ -140,7 +140,13 @@ const internalUser = {
 		}
 
 		return access
-			.can("users:update", data.id)
+			.can("users:permissions", data.id)
+			.catch(() => {
+				delete data.roles;
+			})
+			.then(() => {
+				return access.can("users:update", data.id);
+			})
 			.then(() => {
 				// Make sure that the user being updated doesn't change their email to another user that is already using it
 				// 1. get user we want to update
@@ -210,7 +216,8 @@ const internalUser = {
 								throw new Error();
 						}
 
-						await pipeline(response.body, fs.createWriteStream(`/data/npmplus/gravatar/${hash}.${ext}`));
+						const buffer = await response.arrayBuffer();
+						await writeFile(`/data/npmplus/gravatar/${hash}.${ext}`, Buffer.from(buffer));
 
 						data.avatar = `/images/gravatar/${hash}.${ext}`;
 					} catch (err) {
@@ -271,7 +278,7 @@ const internalUser = {
 				return query.then(utils.omitRow(omissions()));
 			})
 			.then((row) => {
-				if (!row || !row.id) {
+				if (!row?.id) {
 					throw new errs.ItemNotFoundError(thisData.id);
 				}
 				// Custom omissions
@@ -348,12 +355,6 @@ const internalUser = {
 			.then(() => {
 				return true;
 			});
-	},
-
-	deleteAll: async () => {
-		await userModel.query().patch({
-			is_deleted: 1,
-		});
 	},
 
 	/**
@@ -464,7 +465,7 @@ const internalUser = {
 
 					return internalToken
 						.getTokenFromEmail({
-							identity: user.email,
+							identity: user.email.toLowerCase().trim(),
 							secret: data.current,
 						})
 						.then(() => {

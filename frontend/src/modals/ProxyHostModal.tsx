@@ -7,8 +7,9 @@ import { type ReactNode, useState } from "react";
 import { Alert } from "react-bootstrap";
 import Modal from "react-bootstrap/Modal";
 import {
-	AccessField,
+	AccessFields,
 	Button,
+	DirectoryField,
 	DomainNamesField,
 	HasPermission,
 	Loading,
@@ -17,10 +18,10 @@ import {
 	SSLCertificateField,
 	SSLOptionsFields,
 } from "src/components";
-import { useProxyHost, useSetProxyHost, useUser } from "src/hooks";
+import { useDirectorySuggestions, useProxyHost, useProxyHosts, useSetProxyHost, useUser } from "src/hooks";
 import { intl, T } from "src/locale";
 import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
-import { validateNumber, validateString } from "src/modules/Validations";
+import { validateNumber, validateUpstreamUrl } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
 
 interface Props extends InnerModalProps {
@@ -31,6 +32,8 @@ interface Props extends InnerModalProps {
 const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove }: Props) => {
 	const { data: currentUser, isLoading: userIsLoading, error: userError } = useUser("me");
 	const { data, isLoading, error } = useProxyHost(id);
+	const { data: allProxyHosts } = useProxyHosts();
+	const suggestions = useDirectorySuggestions(allProxyHosts);
 	const { mutate: setProxyHost } = useSetProxyHost();
 	const [errorMsg, setErrorMsg] = useState<ReactNode | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,9 +44,38 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 		setIsSubmitting(true);
 		setErrorMsg(null);
 
+		// Set the unrestricted acls here (remove any data in their acl lists)
+		const globalType = values.npmplusAccessListType;
+		let globalAclIds = values.npmplusAccessListIds || [];
+		if (globalType === "public") {
+			globalAclIds = [];
+		}
+		const locations = (values.locations || []).map((loc: any) => {
+			const newLoc = { ...loc };
+			if (loc.npmplusAccessListType === "global" || loc.npmplusAccessListType === "public") {
+				newLoc.npmplusAccessListIds = [];
+			}
+			return newLoc;
+		});
+
+		const meta = { ...(values.meta || {}) };
+		if (typeof meta.directory === "string") {
+			const trimmed = meta.directory.trim();
+			if (trimmed) {
+				meta.directory = trimmed;
+			} else {
+				delete meta.directory;
+			}
+		} else {
+			delete meta.directory;
+		}
+
 		const { ...payload } = {
 			id: id === "new" || isClone ? undefined : id,
 			...values,
+			meta,
+			npmplusAccessListIds: globalAclIds,
+			locations,
 			forwardPort: values.forwardPort || null,
 		};
 
@@ -90,7 +122,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 							forwardScheme: data?.forwardScheme || "http",
 							forwardHost: data?.forwardHost || "",
 							forwardPort: data?.forwardPort || undefined,
-							accessListId: data?.accessListId || 0,
+							npmplusAccessListIds: data?.npmplusAccessListIds || [],
+							npmplusAccessListType: data?.npmplusAccessListType || "public",
 							cachingEnabled: data?.cachingEnabled || false,
 							blockExploits: data?.blockExploits || false,
 							allowWebsocketUpgrade: data?.allowWebsocketUpgrade || true,
@@ -112,15 +145,21 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 							npmplusCrowdsecAppsec: data?.npmplusCrowdsecAppsec || false,
 							npmplusProxyResponseBuffering: data?.npmplusProxyResponseBuffering || false,
 							npmplusProxyRequestBuffering: data?.npmplusProxyRequestBuffering || false,
+							npmplusDisableUriSanitisation:
+								(data?.npmplusDisableUriSanitisation || false) &&
+								["http", "https"].includes(data?.forwardScheme || "http") &&
+								!(data?.forwardHost || "").includes("/"),
+							npmplusSpoofHostHeader: data?.npmplusSpoofHostHeader || false,
 							npmplusUpstreamCompression: data?.npmplusUpstreamCompression || false,
 							npmplusFancyindex: data?.npmplusFancyindex || false,
 							npmplusXFrameOptions: data?.npmplusXFrameOptions || "SAMEORIGIN",
 							npmplusAuthRequest: data?.npmplusAuthRequest || "none",
+							npmplusAuthRequestUpstream: data?.npmplusAuthRequestUpstream || "",
 						} as any
 					}
 					onSubmit={onSubmit}
 				>
-					{() => (
+					{({ values }: any) => (
 						<Form>
 							<Modal.Header closeButton>
 								<Modal.Title>
@@ -157,7 +196,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 													tabIndex={-1}
 													role="tab"
 												>
-													<T id="column.custom-locations" />
+													{<T id="column.custom-locations" />}
+													{values?.locations?.length > 0 ? "*" : ""}
 												</a>
 											</li>
 											<li className="nav-item" role="presentation">
@@ -182,7 +222,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 													tabIndex={-1}
 													role="tab"
 												>
-													<IconSettings size={20} />
+													<T id="domains.advanced" />
+													{values?.advancedConfig?.trim() ? " *" : ""}
 												</a>
 											</li>
 										</ul>
@@ -207,6 +248,40 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 																		className={`form-select ${form.errors.forwardScheme && form.touched.forwardScheme ? "is-invalid" : ""}`}
 																		required
 																		{...field}
+																		onChange={(e) => {
+																			field.onChange(e);
+																			const scheme = e.target.value;
+																			if (scheme === "empty") return;
+																			if (!["http", "https"].includes(scheme)) {
+																				form.setFieldValue(
+																					"npmplusProxyRequestBuffering",
+																					false,
+																				);
+																				form.setFieldValue(
+																					"npmplusProxyResponseBuffering",
+																					false,
+																				);
+																				form.setFieldValue(
+																					"npmplusDisableUriSanitisation",
+																					false,
+																				);
+																			}
+																			if (scheme === "path") {
+																				form.setFieldValue(
+																					"npmplusUpstreamCompression",
+																					false,
+																				);
+																				form.setFieldValue(
+																					"npmplusSpoofHostHeader",
+																					false,
+																				);
+																			} else {
+																				form.setFieldValue(
+																					"npmplusFancyindex",
+																					false,
+																				);
+																			}
+																		}}
 																	>
 																		<option value="http">http://</option>
 																		<option value="https">https://</option>
@@ -228,7 +303,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 														</Field>
 													</div>
 													<div className="col-md-5">
-														<Field name="forwardHost" validate={validateString(1, 255)}>
+														<Field name="forwardHost">
 															{({ field, form }: any) => (
 																<div className="mb-3">
 																	<label className="form-label" htmlFor="forwardHost">
@@ -238,9 +313,16 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 																		id="forwardHost"
 																		type="text"
 																		className={`form-control ${form.errors.forwardHost && form.touched.forwardHost ? "is-invalid" : ""}`}
-																		required
 																		placeholder="example.com"
 																		{...field}
+																		onChange={(e) => {
+																			field.onChange(e);
+																			if (e.target.value.includes("/"))
+																				form.setFieldValue(
+																					"npmplusDisableUriSanitisation",
+																					false,
+																				);
+																		}}
 																	/>
 																	{form.errors.forwardHost ? (
 																		<div className="invalid-feedback">
@@ -292,11 +374,11 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 																onClick={() => setAdvVisible((prev) => !prev)}
 															>
 																<IconSettings size={20} />
+																{values?.npmplusLocationConfig?.trim() ? "*" : ""}
 															</button>
 														</div>
 													</div>
 												</div>
-												<AccessField />
 												<div className="my-3">
 													<h4 className="py-2">
 														<T id="options" />
@@ -522,9 +604,85 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 																						"bg-lime": field.checked,
 																					})}
 																					type="checkbox"
+																					disabled={[
+																						"path",
+																						"empty",
+																					].includes(
+																						form.values.forwardScheme,
+																					)}
+																				/>
+																			</label>
+																		)}
+																	</Field>
+																</span>
+															</label>
+														</div>
+														<div>
+															<label
+																className="row"
+																htmlFor="npmplusDisableUriSanitisation"
+															>
+																<span className="col">
+																	<T id="host.flags.disable-uri-sanitisation" />
+																</span>
+																<span className="col-auto">
+																	<Field
+																		name="npmplusDisableUriSanitisation"
+																		type="checkbox"
+																	>
+																		{({ field, form }: any) => (
+																			<label className="form-check form-check-single form-switch">
+																				<input
+																					{...field}
+																					id="npmplusDisableUriSanitisation"
+																					className={cn("form-check-input", {
+																						"bg-lime": field.checked,
+																					})}
+																					type="checkbox"
 																					disabled={
-																						form.values.forwardScheme ===
-																						"path"
+																						!["http", "https"].includes(
+																							form.values.forwardScheme,
+																						) ||
+																						(
+																							form.values.forwardHost ||
+																							""
+																						).includes("/")
+																					}
+																				/>
+																			</label>
+																		)}
+																	</Field>
+																</span>
+															</label>
+														</div>
+														<div>
+															<label className="row" htmlFor="npmplusSpoofHostHeader">
+																<span className="col">
+																	<T id="host.flags.spoof-host-header" />
+																</span>
+																<span className="col-auto">
+																	<Field
+																		name="npmplusSpoofHostHeader"
+																		type="checkbox"
+																	>
+																		{({ field, form }: any) => (
+																			<label className="form-check form-check-single form-switch">
+																				<input
+																					{...field}
+																					id="npmplusSpoofHostHeader"
+																					className={cn("form-check-input", {
+																						"bg-lime": field.checked,
+																					})}
+																					type="checkbox"
+																					disabled={
+																						![
+																							"http",
+																							"https",
+																							"grpc",
+																							"grpcs",
+																						].includes(
+																							form.values.forwardScheme,
+																						)
 																					}
 																				/>
 																			</label>
@@ -601,7 +759,9 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 														</div>
 														<div>
 															<label className="row" htmlFor="npmplusAuthRequest">
-																<span className="col">Auth Request</span>
+																<span className="col">
+																	<T id="host.auth-request" />
+																</span>
 																<span className="col-auto">
 																	<Field name="npmplusAuthRequest">
 																		{({ field, form }: any) => (
@@ -618,6 +778,12 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 																					</option>
 																					<option value="tinyauth">
 																						tinyauth
+																					</option>
+																					<option value="oauth2proxy">
+																						oauth2proxy
+																					</option>
+																					<option value="voidauth">
+																						voidauth
 																					</option>
 																					<option value="authelia">
 																						authelia (modern)
@@ -645,7 +811,61 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 																</span>
 															</label>
 														</div>
+														{values.npmplusAuthRequest !== "none" && (
+															<div>
+																<label
+																	className="row"
+																	htmlFor="npmplusAuthRequestUpstream"
+																>
+																	<span className="col">
+																		<T id="host.auth-request-upstream" />
+																	</span>
+																	<span className="col-auto">
+																		<Field
+																			name="npmplusAuthRequestUpstream"
+																			validate={validateUpstreamUrl()}
+																		>
+																			{({ field, form }: any) => (
+																				<label>
+																					<input
+																						id="npmplusAuthRequestUpstream"
+																						type="text"
+																						className={`form-control ${form.errors.npmplusAuthRequestUpstream && form.touched.npmplusAuthRequestUpstream ? "is-invalid" : ""}`}
+																						placeholder="keep empty to reuse env value"
+																						pattern="^https?://([^/:]+|\[[a-fA-F0-9:]+\]):[0-9]+$"
+																						{...field}
+																					/>
+																					{form.errors
+																						.npmplusAuthRequestUpstream ? (
+																						<div className="invalid-feedback">
+																							{form.errors
+																								.npmplusAuthRequestUpstream &&
+																							form.touched
+																								.npmplusAuthRequestUpstream
+																								? form.errors
+																										.npmplusAuthRequestUpstream
+																								: null}
+																						</div>
+																					) : null}
+																				</label>
+																			)}
+																		</Field>
+																	</span>
+																</label>
+															</div>
+														)}
 													</div>
+												</div>
+												<div className="my-3">
+													<h4 className="py-2">
+														<T id="proxy-host.global-access-lists" />
+													</h4>
+													<AccessFields
+														initialAccessListType={data?.npmplusAccessListType || "public"}
+														initialAccessListIds={data?.npmplusAccessListIds || []}
+														name="npmplusAccessListIds"
+														type="npmplusAccessListType"
+													/>
 												</div>
 												<Field name="npmplusLocationConfig">
 													{({ field }: any) => (
@@ -676,7 +896,15 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 												</Field>
 											</div>
 											<div className="tab-pane" id="tab-locations" role="tabpanel">
-												<LocationsFields initialValues={data?.locations || []} />
+												<LocationsFields
+													initialValues={(data?.locations || []).map((loc: any) => ({
+														...loc,
+														npmplusDisableUriSanitisation:
+															(loc.npmplusDisableUriSanitisation ?? true) &&
+															["http", "https"].includes(loc.forwardScheme || "http") &&
+															!(loc.forwardHost || "").includes("/"),
+													}))}
+												/>
 											</div>
 											<div className="tab-pane" id="tab-ssl" role="tabpanel">
 												<SSLCertificateField
@@ -688,6 +916,15 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 											</div>
 											<div className="tab-pane" id="tab-advanced" role="tabpanel">
 												<NginxConfigField />
+												<div className="row">
+													<div className="col-md-12 mb-3">
+														<DirectoryField
+															labelId="proxy-host.directory"
+															datalistId="directory-suggestions-proxy"
+															suggestions={suggestions}
+														/>
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>

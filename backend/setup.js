@@ -12,7 +12,11 @@ import proxyModel from "./models/proxy_host.js";
 import redirectionModel from "./models/redirection_host.js";
 import deadModel from "./models/dead_host.js";
 import streamModel from "./models/stream.js";
+import Access from "./lib/access.js";
+import internalHost from "./internal/host.js";
 import internalNginx from "./internal/nginx.js";
+import internalProxyHost from "./internal/proxy-host.js";
+import internalProxyHostAccessList from "./internal/proxy-host-access-list.js";
 
 export const isSetup = async () => {
 	const row = await userModel.query().select("id").where("is_deleted", 0).first();
@@ -25,7 +29,7 @@ export const isSetup = async () => {
  * @returns {Promise}
  */
 const setupDefaultUser = async () => {
-	const initialAdminEmail = process.env.INITIAL_ADMIN_EMAIL;
+	const initialAdminEmail = process.env.INITIAL_ADMIN_EMAIL?.toLowerCase().trim();
 	const initialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD;
 
 	// This will only create a new user when there are no active users in the database
@@ -147,7 +151,15 @@ const regenerateAllHosts = async () => {
 			.withGraphFetched(proxyModel.defaultAllowGraph);
 
 		if (proxyHosts?.length) {
-			await internalNginx.bulkGenerateConfigs(proxyModel, "proxy_host", proxyHosts);
+			// locations dont contain access list objects, so prepopulate them before generating the nginx files
+			const updatedProxyHosts = await Promise.all(
+				proxyHosts.map((host) => {
+					const cleanedHost = internalProxyHostAccessList.cleanAccessListTypes(host);
+					return internalProxyHostAccessList.populateLocationAccessLists(cleanedHost);
+				}),
+			);
+
+			await internalNginx.bulkGenerateConfigs(proxyModel, "proxy_host", updatedProxyHosts, { skipReload: true });
 		}
 
 		const redirectionHosts = await redirectionModel
@@ -157,7 +169,9 @@ const regenerateAllHosts = async () => {
 			.withGraphFetched(redirectionModel.defaultAllowGraph);
 
 		if (redirectionHosts?.length) {
-			await internalNginx.bulkGenerateConfigs(redirectionModel, "redirection_host", redirectionHosts);
+			await internalNginx.bulkGenerateConfigs(redirectionModel, "redirection_host", redirectionHosts, {
+				skipReload: true,
+			});
 		}
 
 		const deadHosts = await deadModel
@@ -167,7 +181,7 @@ const regenerateAllHosts = async () => {
 			.withGraphFetched(deadModel.defaultAllowGraph);
 
 		if (deadHosts?.length) {
-			await internalNginx.bulkGenerateConfigs(deadModel, "dead_host", deadHosts);
+			await internalNginx.bulkGenerateConfigs(deadModel, "dead_host", deadHosts, { skipReload: true });
 		}
 
 		const streamHosts = await streamModel
@@ -177,11 +191,44 @@ const regenerateAllHosts = async () => {
 			.withGraphFetched(streamModel.defaultAllowGraph);
 
 		if (streamHosts?.length) {
-			await internalNginx.bulkGenerateConfigs(streamModel, "stream", streamHosts);
+			await internalNginx.bulkGenerateConfigs(streamModel, "stream", streamHosts, { skipReload: true });
 		}
 
-		utils.writeHash();
+		await utils.writeHash();
+		await internalNginx.reload();
 	}
 };
 
-export default () => setupDefaultUser().then(setupDefaultSettings).then(setupCertbotPlugins).then(regenerateAllHosts);
+/**
+ * Creates the AIO proxy host if enabled and not already present
+ *
+ * @returns {Promise}
+ */
+const setupAio = async () => {
+	const domain = process.env.NC_DOMAIN;
+	if (process.env.NC_AIO !== "true" || !domain) return;
+	if ((await internalHost.isHostnameTaken(domain)).is_taken) return;
+
+	const access = new Access(null);
+	await access.load(true);
+
+	try {
+		await internalProxyHost.create(access, {
+			domain_names: [domain],
+			forward_scheme: "http",
+			forward_host: "127.0.0.1",
+			forward_port: 11000,
+			certificate_id: "new",
+			ssl_forced: true,
+			hsts_enabled: true,
+			hsts_subdomains: true,
+			npmplus_http3_support: true,
+		});
+		logger.info("AIO proxy host created");
+	} catch (err) {
+		logger.error(`AIO proxy host setup failed, create it manually in the NPMplus UI: ${err.message}`);
+	}
+};
+
+export default () =>
+	setupDefaultUser().then(setupDefaultSettings).then(setupCertbotPlugins).then(regenerateAllHosts).then(setupAio);

@@ -52,36 +52,45 @@ router
 				code_challenge: await client.calculatePKCECodeChallenge(code_verifier),
 			};
 
-			res.cookie("npmplus_oidc_no_redirect", "true", { secure: true, sameSite: "Strict" });
-			res.cookie("npmplus_oidc_code_verifier", code_verifier, {
+			res.cookie("__Host-npmplus_oidc_no_redirect", "true", { secure: true, sameSite: "Strict" });
+			res.cookie("__Host-Http-npmplus_oidc_code_verifier", code_verifier, {
 				signed: true,
 				httpOnly: true,
 				secure: true,
 				sameSite: "Lax",
-				path: "/api/oidc",
 			});
-			res.cookie("npmplus_oidc_state", parameters.state, {
+			res.cookie("__Host-Http-npmplus_oidc_state", parameters.state, {
 				signed: true,
 				httpOnly: true,
 				secure: true,
 				sameSite: "Lax",
-				path: "/api/oidc",
 			});
-			res.cookie("npmplus_oidc_nonce", parameters.nonce, {
+			res.cookie("__Host-Http-npmplus_oidc_nonce", parameters.nonce, {
 				signed: true,
 				httpOnly: true,
 				secure: true,
 				sameSite: "Lax",
-				path: "/api/oidc",
 			});
 
 			res.redirect(await client.buildAuthorizationUrl(config, parameters).toString());
 		} catch (err) {
 			logger.error(`Callback error: ${err.message}`);
-			res.cookie("npmplus_oidc_no_redirect", "true", { secure: true, sameSite: "Strict" });
-			res.clearCookie("npmplus_oidc_state", { path: "/api/oidc" });
-			res.clearCookie("npmplus_oidc_nonce", { path: "/api/oidc" });
-			res.clearCookie("npmplus_oidc_code_verifier", { path: "/api/oidc" });
+			res.cookie("__Host-npmplus_oidc_no_redirect", "true", { secure: true, sameSite: "Strict" });
+			res.clearCookie("__Host-Http-npmplus_oidc_state", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
+			res.clearCookie("__Host-Http-npmplus_oidc_nonce", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
+			res.clearCookie("__Host-Http-npmplus_oidc_code_verifier", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
 			res.redirect("/");
 		}
 	});
@@ -109,14 +118,20 @@ router
 				config,
 				new URL(`${req.protocol}://${req.host}${req.originalUrl}`),
 				{
-					pkceCodeVerifier: req.signedCookies?.npmplus_oidc_code_verifier,
-					expectedState: req.signedCookies?.npmplus_oidc_state,
-					expectedNonce: req.signedCookies?.npmplus_oidc_nonce,
+					pkceCodeVerifier: req.signedCookies?.["__Host-Http-npmplus_oidc_code_verifier"],
+					expectedState: req.signedCookies?.["__Host-Http-npmplus_oidc_state"],
+					expectedNonce: req.signedCookies?.["__Host-Http-npmplus_oidc_nonce"],
 					idTokenExpected: true,
 				},
 			);
 
-			const claims = tokens.claims();
+			const idTokenClaims = tokens.claims();
+
+			let claims = idTokenClaims;
+			if (!idTokenClaims.email) {
+				const userinfo = await client.fetchUserInfo(config, tokens.access_token, idTokenClaims.sub);
+				claims = { ...idTokenClaims, ...userinfo };
+			}
 
 			if (!claims.email) throw new errs.AuthError("The Identity Provider didn't send the 'email' claim");
 
@@ -128,25 +143,48 @@ router
 
 			const data = await internalToken.getTokenFromOAuthClaim({ identity: claims.email.toLowerCase().trim() });
 
-			res.cookie("token", data.token, {
+			res.cookie("__Host-Http-token", data.token, {
 				signed: true,
 				httpOnly: true,
 				secure: true,
 				sameSite: "Strict",
-				path: "/api",
 				expires: new Date(data.expires),
 			});
 
-			res.clearCookie("npmplus_oidc_no_redirect");
-			res.clearCookie("npmplus_oidc_state", { path: "/api/oidc" });
-			res.clearCookie("npmplus_oidc_nonce", { path: "/api/oidc" });
-			res.clearCookie("npmplus_oidc_code_verifier", { path: "/api/oidc" });
+			res.clearCookie("__Host-npmplus_oidc_no_redirect", { secure: true, sameSite: "Strict" });
+			res.clearCookie("__Host-Http-npmplus_oidc_state", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
+			res.clearCookie("__Host-Http-npmplus_oidc_nonce", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
+			res.clearCookie("__Host-Http-npmplus_oidc_code_verifier", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
 			res.redirect("/");
 		} catch (err) {
 			logger.error(`Callback error: ${err.message}`);
-			res.clearCookie("npmplus_oidc_state", { path: "/api/oidc" });
-			res.clearCookie("npmplus_oidc_nonce", { path: "/api/oidc" });
-			res.clearCookie("npmplus_oidc_code_verifier", { path: "/api/oidc" });
+			res.clearCookie("__Host-Http-npmplus_oidc_state", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
+			res.clearCookie("__Host-Http-npmplus_oidc_nonce", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
+			res.clearCookie("__Host-Http-npmplus_oidc_code_verifier", {
+				httpOnly: true,
+				secure: true,
+				sameSite: "Lax",
+			});
 			res.redirect("/");
 		}
 	});

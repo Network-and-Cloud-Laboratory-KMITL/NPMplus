@@ -92,7 +92,7 @@ export default function TableWrapper() {
 						showDeleteConfirmModal({
 							title: <T id="object.delete" tData={{ object: "access-list" }} />,
 							onConfirm: () => handleDelete(id),
-							invalidations: [["access-lists"], ["access-list", id]],
+							invalidations: [["access-lists"], ["access-list", id], ["proxy-hosts"], ["proxy-host"]],
 							children: <T id="object.delete.content" tData={{ object: "access-list" }} />,
 						})
 					}

@@ -103,14 +103,17 @@ const internalHost = {
 			proxyHostModel
 				.query()
 				.where("is_deleted", 0)
+				.andWhere("enabled", 1)
 				.andWhere(castJsonIfNeed("domain_names"), "like", `%${hostname}%`),
 			redirectionHostModel
 				.query()
 				.where("is_deleted", 0)
+				.andWhere("enabled", 1)
 				.andWhere(castJsonIfNeed("domain_names"), "like", `%${hostname}%`),
 			deadHostModel
 				.query()
 				.where("is_deleted", 0)
+				.andWhere("enabled", 1)
 				.andWhere(castJsonIfNeed("domain_names"), "like", `%${hostname}%`),
 		];
 

@@ -251,7 +251,7 @@ const internalRedirectionHost = {
 			})
 			.then((row) => {
 				let thisRow = row;
-				if (!thisRow || !thisRow.id) {
+				if (!thisRow?.id) {
 					throw new errs.ItemNotFoundError(thisData.id);
 				}
 				thisRow = internalHost.cleanRowCertificateMeta(thisRow);
@@ -277,7 +277,7 @@ const internalRedirectionHost = {
 				return internalRedirectionHost.get(access, { id: data.id });
 			})
 			.then((row) => {
-				if (!row || !row.id) {
+				if (!row?.id) {
 					throw new errs.ItemNotFoundError(data.id);
 				}
 
@@ -325,13 +325,29 @@ const internalRedirectionHost = {
 				});
 			})
 			.then((row) => {
-				if (!row || !row.id) {
+				if (!row?.id) {
 					throw new errs.ItemNotFoundError(data.id);
 				}
 				if (row.enabled) {
 					throw new errs.ValidationError("Host is already enabled");
 				}
 
+				const domainNameCheckPromises = [];
+				row.domain_names.map((domain_name) => {
+					domainNameCheckPromises.push(internalHost.isHostnameTaken(domain_name));
+					return true;
+				});
+				return Promise.all(domainNameCheckPromises).then((checkResults) => {
+					checkResults.map((result) => {
+						if (result.is_taken) {
+							throw new errs.ValidationError(`${result.hostname} is already in use by an active host`);
+						}
+						return true;
+					});
+					return row;
+				});
+			})
+			.then((row) => {
 				row.enabled = 1;
 
 				return redirectionHostModel
@@ -373,7 +389,7 @@ const internalRedirectionHost = {
 				return internalRedirectionHost.get(access, { id: data.id });
 			})
 			.then((row) => {
-				if (!row || !row.id) {
+				if (!row?.id) {
 					throw new errs.ItemNotFoundError(data.id);
 				}
 				if (!row.enabled) {

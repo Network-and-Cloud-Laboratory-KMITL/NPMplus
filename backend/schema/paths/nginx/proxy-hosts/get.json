@@ -19,7 +19,7 @@
 			"schema": {
 				"type": "string",
 				"enum": [
-					"access_list",
+					"access_lists",
 					"owner",
 					"certificate"
 				]
@@ -44,7 +44,8 @@
 									],
 									"forward_host": "127.0.0.1",
 									"forward_port": 8081,
-									"access_list_id": 1,
+									"npmplus_access_list_ids": [],
+									"npmplus_access_list_type": "public",
 									"certificate_id": 1,
 									"ssl_forced": false,
 									"caching_enabled": false,
@@ -54,10 +55,13 @@
 									"npmplus_crowdsec_appsec": false,
 									"npmplus_proxy_request_buffering": false,
 									"npmplus_proxy_response_buffering": false,
+									"npmplus_disable_uri_sanitisation": false,
+									"npmplus_spoof_host_header": false,
 									"npmplus_upstream_compression": false,
 									"npmplus_fancyindex": false,
 									"npmplus_x_frame_options": "DENY",
 									"npmplus_auth_request": "none",
+									"npmplus_auth_request_upstream": "",
 									"advanced_config": "",
 									"npmplus_location_config": "",
 									"meta": {

@@ -2,7 +2,6 @@
 
 echo "
 -------------------------------------
-User:     $(whoami)
 PUID:     $PUID
 User ID:  $(id -u)
 PGID:     $PGID
@@ -74,7 +73,6 @@ fi
 
 
 echo "Starting services..."
-aio.sh &
 if [ "$PHP83" = "true" ]; then while true; do PHP_INI_SCAN_DIR=/data/php/83/conf.d php-fpm83 -c /data/php/83 -y /data/php/83/php-fpm.conf -FOR; done; fi &
 if [ "$PHP84" = "true" ]; then while true; do PHP_INI_SCAN_DIR=/data/php/84/conf.d php-fpm84 -c /data/php/84 -y /data/php/84/php-fpm.conf -FOR; done; fi &
 if [ "$PHP85" = "true" ]; then while true; do PHP_INI_SCAN_DIR=/data/php/85/conf.d php-fpm85 -c /data/php/85 -y /data/php/85/php-fpm.conf -FOR; done; fi &
@@ -85,6 +83,7 @@ if [ "$GOA" = "true" ]; then set -f; while true; do if [ -s /data/nginx/logs/acc
                     --real-time-html --output=/tmp/goa/index.html --db-path=/data/goaccess/data --restore --persist \
                     --browsers-file=/etc/goaccess/browsers.list --browsers-file=/etc/goaccess/podcast.list $GOACLA; else sleep 10s; fi; done; fi &
 while true; do
+  sleep 10s
   if [ -s "/data/tls/ech/cron.sh" ]; then
     chmod +x /data/tls/ech/cron.sh
     /data/tls/ech/cron.sh

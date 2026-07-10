@@ -68,8 +68,11 @@
 						"allow_websocket_upgrade": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/allow_websocket_upgrade"
 						},
-						"access_list_id": {
-							"$ref": "../../../components/proxy-host-object.json#/properties/access_list_id"
+						"npmplus_access_list_ids": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_access_list_ids"
+						},
+						"npmplus_access_list_type": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_access_list_type"
 						},
 						"npmplus_noindex": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_noindex"
@@ -83,6 +86,12 @@
 						"npmplus_proxy_response_buffering": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_proxy_response_buffering"
 						},
+						"npmplus_disable_uri_sanitisation": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_disable_uri_sanitisation"
+						},
+						"npmplus_spoof_host_header": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_spoof_host_header"
+						},
 						"npmplus_upstream_compression": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_upstream_compression"
 						},
@@ -94,6 +103,9 @@
 						},
 						"npmplus_auth_request": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_auth_request"
+						},
+						"npmplus_auth_request_upstream": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_auth_request_upstream"
 						},
 						"advanced_config": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/advanced_config"
@@ -140,7 +152,8 @@
 								],
 								"forward_host": "127.0.0.1",
 								"forward_port": 8080,
-								"access_list_id": 0,
+								"npmplus_access_list_ids": [],
+								"npmplus_access_list_type": "public",
 								"certificate_id": 0,
 								"ssl_forced": false,
 								"caching_enabled": false,
@@ -150,10 +163,13 @@
 								"npmplus_crowdsec_appsec": false,
 								"npmplus_proxy_request_buffering": false,
 								"npmplus_proxy_response_buffering": false,
+								"npmplus_disable_uri_sanitisation": false,
+								"npmplus_spoof_host_header": false,
 								"npmplus_upstream_compression": false,
 								"npmplus_fancyindex": false,
 								"npmplus_x_frame_options": "DENY",
 								"npmplus_auth_request": "none",
+								"npmplus_auth_request_upstream": "",
 								"advanced_config": "",
 								"npmplus_location_config": "",
 								"meta": {},
@@ -179,7 +195,7 @@
 										"admin"
 									]
 								},
-								"access_list": null
+								"access_lists": []
 							}
 						}
 					},

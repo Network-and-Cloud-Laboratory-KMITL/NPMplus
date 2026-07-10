@@ -6,7 +6,7 @@ If you don't need the web GUI of NPMplus, you may also have a look at caddy: htt
 - [Quick Setup](#quick-setup)
 - [Migration from upstream/vanilla nginx-proxy-manager](#migration-from-upstreamvanilla-nginx-proxy-manager)
 
-**Note: this fork is distributed under the GNU Affero General Public License version 3. It is based on the MIT licensed [nginx-proxy-manager](https://github.com/NginxProxyManager/nginx-proxy-manager).** <br>
+**Note: this fork is distributed under the GNU Affero General Public License version 3 or any later version. It is based on the MIT licensed [nginx-proxy-manager](https://github.com/NginxProxyManager/nginx-proxy-manager).** <br>
 **Note: by running NPMplus you agree to the ToS of Let's Encrypt/your custom CA.** <br>
 **Note: remember to expose udp/quic for the https port (443/udp).** <br>
 **Note: remember to add your domain to the [hsts preload list](https://hstspreload.org) if you enabled hsts for your domain.** <br>
@@ -23,20 +23,25 @@ If you don't need the web GUI of NPMplus, you may also have a look at caddy: htt
 - ML-KEM support (also hardened TLS settings enforced)
 - https for the NPMplus interface
 - Goaccess included
-- punycode domain support
-- zstd and brotli
+- easier punycode domain support
+- zstd and brotli compression
 - basic security headers always send
 - allow empty ports to support loadbalancing
 - proxy protocol support
-- improved nginx build and nginx templates
+- improved nginx build (with aws-lc and custom patches) and nginx templates with keep-alive to upstreams
+- tls certificate compression (zlib-ng+brotli) and optional encrypted client hello (ech) support
+- mTLS ca cert upload support
 - file and php server support (and fancyindex)
 - option to edit custom certs
 - gravatars are cached locally and fetched by the backend (better privacy by not exposing you directly to gravatar)
 - qrcodes for totp are generated locally in your browser instead of using a third-party api (better privacy/security by not exposing you and the secret to the third-party api)
 - re-added some things that where removed with upstreams new frontend
-- use secure cookied instead of local storage to save the token
+- use secure cookied instead of local storage to save the token combined with a Content-Security-Policy
 - Password reset (only sqlite) using `docker exec -it npmplus password-reset.js USER_EMAIL PASSWORD`
+- Swagger UI under /api/docs
 - many other things, see this README.md and the compose.yaml
+- Proxy Locations can have access lists different to their host
+- Proxy Hosts and Proxy Locations can use multiple access lists
 
 ## Compatibility (to Upstream)
 - Supported architectures: x86_64-v2/amd64v2 (check with `/lib/ld-linux-x86-64.so.2 --help`, plain x86-64 is not supported only v2 and up) and aarch64/arm64 (other archs (including 64-bit ones) and any 32-bit arch (like armhf/armv7 (dropped), armel/armv6) are not supported, because of the duration to compile).
@@ -54,7 +59,7 @@ If you don't need the web GUI of NPMplus, you may also have a look at caddy: htt
 - [Docker Install documentation](https://docs.docker.com/engine/install)
 - [Docker Compose Install documentation](https://docs.docker.com/compose/install/linux)
 2. Download this [compose.yaml](https://raw.githubusercontent.com/ZoeyVid/NPMplus/refs/heads/develop/compose.yaml) (or use its content as a portainer stack)
-3. Adjust TZ and ACME_EMAIL to your values and maybe adjust other env options to your needs
+3. Adjust TZ to match your Timezone and maybe adjust other env options to your needs
 4. Start NPMplus by running (or deploy your portainer stack)
 ```bash
 docker compose up -d
@@ -67,7 +72,7 @@ docker compose up -d
 2. make a backup of your data and letsencrypt folders (creating a copy using `cp -a` should be enough)
 3. download the latest compose.yaml of NPMplus
 4. adjust your paths (of /etc/letsencrypt and /data) to the ones you used with nginx-proxy-manager
-5. adjust TZ and ACME_EMAIL to your values and maybe adjust other env options to your needs
+5. adjust TZ to match your Timezone and maybe adjust other env options to your needs
 6. stop nginx-proxy-manager
 7. deploy the NPMplus compose.yaml
 8. You should now remove the `/etc/letsencrypt` mount, since it was moved to `/data` while migration, then redeploy the compose file
@@ -118,9 +123,7 @@ labels:
 12. Note that when using crowdsec requests will always be buffered, so setting `proxy_(request_)buffering` to off will not work
 
 ## Use of external php-fpm (recommended)
-1. Create a new Proxy Host with some dummy data in the details tab (since these get fully ignored)
-2. Make other settings (like TLS)
-3. Create a custom location `/` set the scheme to `path`, put in the path, the press the gear button and fill this in (edit the last line):
+2. to set it per location: press the gear button (on the tab itself, not the tab selection) on the details tab (or on the custom location you want to use), set the scheme to `path`, put in the path and paste the following in the new text field at the bottom, you need to adjust the last line (or use the advanced tab to apply it to all locations):
 ```
 location ~* [^/]\.php(?:$|/) {
   fastcgi_split_path_info ^(.*\.php)(/.*)$;
@@ -143,6 +146,8 @@ location ~* [^/]\.php(?:$|/) {
 - Disable Response Buffering: Most time you want keep buffering enabled, you may want to disable this if you for example want to stream videos and you have a fast and stable connection to the upstream server, this effects the connection from the upstream server to NPMplus
 - Disable Request Buffering: Most time you want keep buffering enabled, request buffering will always be enabled if crowdsec appsec is enabled, you may want to disable this if you for example want to upload huge files and have a fast and stable connection to the upstream server, this effects the connection from the NPMplus to the upstream server
 - Enable compression by upstream: this will allow the backend to compress files, I recommend you to keep this disabled, there may be cases where this is needed since otherwise the upstream missbehaves for some reason (like collabora in nextcloud all-in-one)
+- Disable URI Sanitisation: By default, nginx sanitises the URI (removing `../` to prevent directory traversal attacks). Enabling this toggle will disable this protection by appending `$request_uri` directly without sanitisation. Note: If a path is appended to the `Forward Hostname / IP` (e.g. `127.0.0.1/path`), this toggle is disabled as the path takes precedence over `$request_uri` and disables URI sanitisation automatically. Only enable this if your backend requires the raw URI (like collabora in nextcloud all-in-one)
+- Spoof Host Header: this will rewrite the Host header sent to the upstream server to match the configured Forward Hostname / IP and Forward Port instead of sending the original Host header provided by the client, only enable this if you want to actively spoof the host header, it is never needed for normal proxying
 - Enable fancyindex: this will enabled fancyindex, which shows a index of all files in the folder if there is no index file, only enable this if you know what you are doing and you need the index
 - Websockets: this button was removed, websockets are now always enabled
 - Reuse Key: this will make the new cert always keep its key unless you force renew it, I recommend you to keep this disabled (not to keep the key), a reason to keep the key would be TLSA/pubkey pinning
@@ -150,6 +155,8 @@ location ~* [^/]\.php(?:$|/) {
 - X-Frame-Options: will control the X-Frame-Options header, none will remove the header, SAMEORIGIN/DENY will set it to these values and upstream will keep what upstream sends
 
 ## Examples of implementing some services using auth_request
+
+Note: The upstream URL for an auth request provider can be overridden in the UI; a main location's override takes precedence over any custom location's override.
 
 ### Anubis
 1. Deploy an anubis container (see the compose.yaml for an example and information)
@@ -160,29 +167,51 @@ status_codes:
   DENY: 403
 ```
 3. Set the AUTH_REQUEST_ANUBIS_UPSTREAM env in the NPMplus compose.yaml and select anubis in the Auth Request selection, no custom/advanced config/locations needed
-4. You can override the "allow", "checking" and "blocked" images used by default by setting the `AUTH_REQUEST_ANUBIS_USE_CUSTOM_IMAGES` env to true and putting put your custom images as happy.webp, pensive.webp and reject.webp to /opt/npmplus/anubis
+4. You can override the "allow", "checking" and "blocked" images used by default by putting put your custom images as happy.webp, pensive.webp and reject.webp to /opt/npmplus/anubis and restarting NPMplus
 
 ### Tinyauth
-1. Set the AUTH_REQUEST_TINYAUTH_UPSTREAM and AUTH_REQUEST_TINYAUTH_DOMAIN env in the NPMplus compose.yaml and select tinyauth in the Auth Request selection, no custom/advanced config/locations needed
+1. Set the AUTH_REQUEST_TINYAUTH_UPSTREAM env in the NPMplus compose.yaml and select tinyauth in the Auth Request selection, no custom/advanced config/locations needed
+
+### OAuth2Proxy
+1. Set the AUTH_REQUEST_OAUTH2PROXY_UPSTREAM env in the NPMplus compose.yaml and select oauth2proxy in the Auth Request selection, no custom/advanced config/locations needed
+
+### VoidAuth
+1. Set the AUTH_REQUEST_VOIDAUTH_UPSTREAM env in the NPMplus compose.yaml and select voidauth in the Auth Request selection, no custom/advanced config/locations needed
 
 ### Authelia (modern)
 1. Set the AUTH_REQUEST_AUTHELIA_UPSTREAM env in the NPMplus compose.yaml and select authelia (modern) in the Auth Request selection, no custom/advanced config/locations needed
 
-### Authentik
-1. Set the AUTH_REQUEST_AUTHENTIK_UPSTREAM env (and optional AUTH_REQUEST_AUTHENTIK_DOMAIN env if you use the "domain level" variant in authentik, do not set this env if you use the "single application" variant) in the NPMplus compose.yaml and select authentik/authentik-send-basic-auth in the Auth Request selection, no custom/advanced config/locations needed
+### Authentik (single application)
+1. Set the AUTH_REQUEST_AUTHENTIK_UPSTREAM env in the NPMplus compose.yaml and select authentik/authentik-send-basic-auth in the Auth Request selection, no custom/advanced config/locations needed
 
 ## Load Balancing
 1. Open and edit this file: `/opt/npmplus/custom_nginx/http_top.conf` (or `/opt/npmplus/custom_nginx/stream_top.conf` for streams), if you changed /opt/npmplus to a different path make sure to change the path to fit
 2. Set the upstream directive(s) with your servers which should be load balanced (https://nginx.org/en/docs/http/ngx_http_upstream_module.html / https://nginx.org/en/docs/stream/ngx_stream_upstream_module.html), they need to run the same protocol (either http(s) or grpc(s) for proxy hosts or tcp/udp/proxy protocol for streams), like this for example:
 ```
-upstream server1 {
-  server 127.0.0.1:44;
-  server 127.0.0.1:33;
-  server 127.0.0.1:22;
-  server 192.158.168.11:44 backup;
+upstream cu_mybackend {
+  zone cu_mybackend 128k;
+  server 127.0.0.1:44 resolve;
+  server 127.0.0.1:33 resolve;
+  server 127.0.0.1:22 resolve;
+  server 192.168.1.11:44 backup resolve;
 }
 ```
-3. Configure your proxy host/stream like always in the UI, but set the hostname to service1 (or service2 or however you named it) and keep the forward port field empty (since you set the ports within the upstream directive)
+3. Configure your proxy host/stream like always in the UI, but set the hostname to the exact name of your upstream block (e.g. `cu_mybackend`) and leave the forward port field empty (ports are defined inside the upstream block)
+   - The `cu_` prefix (short for **c**ustom **u**pstream) is required: NPMplus uses it to detect that the hostname refers to a custom upstream block and skips generating its own upstream block for it
+
+## Encrypted Client Hello (ECH)
+
+- NPMplus supports generating and automatically rotating Encrypted Client Hello (ECH) keys. To enable and configure ECH, you need to set up a cron script that triggers the key generation and updates your DNS records.
+- When the container starts, it automatically creates an empty file at `/opt/npmplus/tls/ech/cron.sh`. You need to fill this file with a script to handle your ECH keys. 
+- If this file is not empty, NPMplus will automatically execute it regularly, enable ECH in the nginx configuration, and reload nginx after execution.
+- Inside your `cron.sh`, use the built-in `ech.sh` command to generate your keys. The syntax is: `ech.sh <public-name> <identifier> [max-name-length (default 64)]`.
+- This command generates the keys in `/opt/npmplus/tls/ech/` (saving the current and previous keys) and outputs the Base64-encoded ECH config list to standard output, which you can capture to update your DNS records.
+- Because ECH requires advertising your public key via an HTTPS DNS record, your `cron.sh` must push the newly generated config to your DNS provider. 
+- There is an example cron.sh script for Cloudflare in the repository: [`ech-cron-cloudflare-example.sh`](ech-cron-cloudflare-example.sh). You can adapt this script, add your API tokens, define your zones/records, and place its contents into `/opt/npmplus/tls/ech/cron.sh`.
+- By default, the container will run your `cron.sh` script and reload nginx on container start and then every hour after container start. You can change this interval by setting the `ECH_ROTATION_INTERVAL` environment variable in your `compose.yaml`.
+- I recommend you to use your servers hostname/PTR record as public name. The "identifier" is only used as part of the filename.
+- Do not set HTTPS records for FQDNs which use a CNAME record, but set them for the CNAME target, as only the HTTPS record of the CNAME target will be used by chromium.
+- Deleting/clearing the cron.sh will disable ECH
 
 ## Encrypted Client Hello (ECH)
 
@@ -238,7 +267,7 @@ geoip2 /data/goaccess/geoip/GeoLite2-Country.mmdb {
 #  fec0::/10 yes;
 #}
 ```  
-4a. to set it per location: create a custom location / (or the location you want to use), set your proxy settings, then press the gear button and paste the following in the new text field, you may want to adjust the last lines (do not use the advanced tab with this example as it may break cert renewals):
+4a. to set it per location: press the gear button (on the tab itself, not the tab selection) on the details tab (or on the custom location you want to use), set your proxy settings and paste the following in the new text field at the bottom, you may want to adjust the last lines (do not use the advanced tab with this example as it may break cert renewals):
 ```yaml
 # uncomment if you block/don't allow IPs with unknown country codes
 #if ($is_private_ip = yes) { 
@@ -344,17 +373,12 @@ If you need to run scripts before NPMplus launches put them under: `/opt/npmplus
 - if enabled to the crowdsec (container) lapi
 - if you see more/others please report them
 
-## Features and Project Goal of Upstream
-I created this project to fill a personal need to provide users with an easy way to accomplish reverse proxying hosts with TLS termination and it had to be so easy that a monkey could do it. This goal hasn't changed. While advanced configuration options are available, they remain entirely optional. The core idea is to keep things as simple as possible, lowering the barrier to entry for everyone.
-- Beautiful and Secure Admin Interface based on [Tabler](https://tabler.github.io)
-- Easily create forwarding domains, redirections, streams and 404 hosts without knowing anything about Nginx
-- Free trusted TLS certificates using Certbot (Let's Encrypt/other CAs) or provide your own custom TLS certificates
-- Access Lists and basic HTTP Authentication for your hosts
-- Advanced Nginx configuration available for super users
-- User management, permissions and audit log
+## Access Lists
+When using multiple Access Lists on a Proxy Host or a Proxy Location, they are evaluated in a top-down order from the UI. 
+The `Satisfy Any` or `Pass Auth to Upstream` only get applied if they are set on the first Access List assigned to a proxy host/location
 
 ## Contributing
-All are welcome to create pull requests for this project, but this does not mean that they will be merged, so better ask if your PR would be merged before creating one (via Discussion), typos and translation are excluded from this.
+All are welcome to create pull requests for this project, but this does not mean that they will be merged, so better ask if your PR would be merged before creating one (via Discussion), typos and translations are excluded from this.
 
 # Please report issues first to this fork before reporting them to the upstream repository
 ## Getting Help

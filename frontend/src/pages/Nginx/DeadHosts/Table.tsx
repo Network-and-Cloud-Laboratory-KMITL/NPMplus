@@ -1,6 +1,13 @@
 import { IconDotsVertical, IconEdit, IconPower, IconTrash } from "@tabler/icons-react";
-import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
-import { useMemo } from "react";
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getSortedRowModel,
+	type OnChangeFn,
+	type SortingState,
+	useReactTable,
+} from "@tanstack/react-table";
+import { type ReactNode, useMemo } from "react";
 import type { DeadHost } from "src/api/backend";
 import {
 	CertificateFormatter,
@@ -22,8 +29,26 @@ interface Props {
 	onDelete?: (id: number) => void;
 	onDisableToggle?: (id: number, enabled: boolean) => void;
 	onNew?: () => void;
+	sorting?: SortingState;
+	onSortingChange?: OnChangeFn<SortingState>;
+	showHeader?: boolean;
+	groupBy?: (row: DeadHost) => string;
+	renderGroupLabel?: (key: string) => ReactNode;
 }
-export default function Table({ data, isFetching, onEdit, onDelete, onDisableToggle, onNew, isFiltered }: Props) {
+export default function Table({
+	data,
+	isFetching,
+	onEdit,
+	onDelete,
+	onDisableToggle,
+	onNew,
+	isFiltered,
+	sorting,
+	onSortingChange,
+	showHeader,
+	groupBy,
+	renderGroupLabel,
+}: Props) {
 	const columnHelper = createColumnHelper<DeadHost>();
 	const columns = useMemo(
 		() => [
@@ -54,9 +79,9 @@ export default function Table({ data, isFetching, onEdit, onDelete, onDisableTog
 			}),
 			columnHelper.accessor(
 				(row: any) => {
-					if (!row.enabled) return "disabled";
-					if (row.meta.nginxOnline) return "online";
-					return "offline";
+					if (!row.enabled) return "3disabled";
+					if (row.meta.nginxOnline) return "2online";
+					return "1offline";
 				},
 				{
 					id: "enabled",
@@ -73,8 +98,16 @@ export default function Table({ data, isFetching, onEdit, onDelete, onDisableTog
 					},
 				},
 			),
-			columnHelper.display({
+			columnHelper.accessor((row: any) => row.id, {
 				id: "id",
+				header: "ID",
+				cell: (info: any) => info.getValue(),
+				meta: {
+					className: "text-end w-1",
+				},
+			}),
+			columnHelper.display({
+				id: "actions",
 				cell: (info: any) => {
 					return (
 						<span className="dropdown">
@@ -152,11 +185,16 @@ export default function Table({ data, isFetching, onEdit, onDelete, onDisableTog
 			isFetching,
 		},
 		enableSortingRemoval: false,
+		state: sorting ? { sorting } : undefined,
+		onSortingChange,
 	});
 
 	return (
 		<TableLayout
 			tableInstance={tableInstance}
+			showHeader={showHeader}
+			groupBy={groupBy}
+			renderGroupLabel={renderGroupLabel}
 			emptyState={
 				<EmptyData
 					object="dead-host"

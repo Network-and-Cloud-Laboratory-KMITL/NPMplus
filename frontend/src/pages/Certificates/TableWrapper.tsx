@@ -133,6 +133,17 @@ export default function TableWrapper() {
 												>
 													<T id="certificates.custom" />
 												</a>
+												<div className="dropdown-divider" />
+												<a
+													className="dropdown-item"
+													href="#"
+													onClick={(e) => {
+														e.preventDefault();
+														showCustomCertificateModal(undefined, "mtls");
+													}}
+												>
+													mTLS
+												</a>
 											</div>
 										</div>
 									) : null}
@@ -143,6 +154,7 @@ export default function TableWrapper() {
 				</div>
 				<Table
 					data={filtered ?? data ?? []}
+					allData={data ?? []}
 					isFiltered={!!search}
 					isFetching={isFetching}
 					onRenew={showRenewCertificateModal}

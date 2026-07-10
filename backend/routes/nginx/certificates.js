@@ -155,13 +155,16 @@ router
 	 * Validate certificates
 	 */
 	.post(async (req, res, next) => {
-		if (!req.files || Object.keys(req.files).length !== 2 || !req.files.certificate || !req.files.certificate_key) {
-			res.status(400).send({ error: "certificate and certificate_key were not uploaded" });
+		if (
+			!req.files?.certificate ||
+			Object.keys(req.files).some((name) => name !== "certificate" && name !== "certificate_key")
+		) {
+			res.status(400).send({ error: "only certificate and certificate_key files are allowed" });
 			return;
 		}
 
 		try {
-			const result = await internalCertificate.validate({
+			const result = await internalCertificate.validate(res.locals.access, {
 				files: req.files,
 			});
 			res.status(200).send(result);
@@ -254,8 +257,11 @@ router
 	 * Upload certificates
 	 */
 	.post(async (req, res, next) => {
-		if (!req.files || Object.keys(req.files).length !== 2 || !req.files.certificate || !req.files.certificate_key) {
-			res.status(400).send({ error: "certificate and certificate_key were not uploaded" });
+		if (
+			!req.files?.certificate ||
+			Object.keys(req.files).some((name) => name !== "certificate" && name !== "certificate_key")
+		) {
+			res.status(400).send({ error: "only certificate and certificate_key files are allowed" });
 			return;
 		}
 

@@ -207,7 +207,7 @@ export default {
 		}
 
 		// Check scope
-		if (!tokenData.scope || tokenData.scope[0] !== "2fa-challenge") {
+		if (tokenData.scope?.[0] !== "2fa-challenge") {
 			throw new errs.AuthError("Invalid challenge token");
 		}
 

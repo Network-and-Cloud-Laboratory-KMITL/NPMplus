@@ -1,6 +1,13 @@
 import { IconCopy, IconDotsVertical, IconEdit, IconPower, IconTrash } from "@tabler/icons-react";
-import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
-import { useMemo } from "react";
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getSortedRowModel,
+	type OnChangeFn,
+	type SortingState,
+	useReactTable,
+} from "@tanstack/react-table";
+import { type ReactNode, useMemo } from "react";
 import type { ProxyHost } from "src/api/backend";
 import {
 	AccessListFormatter,
@@ -24,6 +31,11 @@ interface Props {
 	onDelete?: (id: number) => void;
 	onDisableToggle?: (id: number, enabled: boolean) => void;
 	onNew?: () => void;
+	sorting?: SortingState;
+	onSortingChange?: OnChangeFn<SortingState>;
+	showHeader?: boolean;
+	groupBy?: (row: ProxyHost) => string;
+	renderGroupLabel?: (key: string) => ReactNode;
 }
 export default function Table({
 	data,
@@ -34,6 +46,11 @@ export default function Table({
 	onDisableToggle,
 	onNew,
 	isFiltered,
+	sorting,
+	onSortingChange,
+	showHeader,
+	groupBy,
+	renderGroupLabel,
 }: Props) {
 	const columnHelper = createColumnHelper<ProxyHost>();
 	const columns = useMemo(
@@ -78,18 +95,37 @@ export default function Table({
 					return <CertificateFormatter certificate={info.row.original.certificate} />;
 				},
 			}),
-			columnHelper.accessor((row: any) => (row.accessList ? row.accessList.name : "Public"), {
-				id: "accessList",
-				header: intl.formatMessage({ id: "column.access" }),
-				cell: (info: any) => {
-					return <AccessListFormatter access={info.row.original.accessList} />;
-				},
-			}),
 			columnHelper.accessor(
 				(row: any) => {
-					if (!row.enabled) return "disabled";
-					if (row.meta.nginxOnline) return "online";
-					return "offline";
+					const accessLists = row.accessLists || [];
+					const triggerLabel = intl.formatMessage({
+						id: row.npmplusAccessListType === "custom" ? "access-list.custom" : "access-list.public",
+					});
+					if (accessLists.length === 1) {
+						return accessLists[0].name;
+					}
+					return triggerLabel;
+				},
+				{
+					id: "accessList",
+					header: intl.formatMessage({ id: "column.access" }),
+					cell: (info: any) => {
+						return (
+							<AccessListFormatter
+								proxyHostId={info.row.original.id}
+								locations={info.row.original.locations}
+								access={info.row.original.accessLists}
+								type={info.row.original.npmplusAccessListType}
+							/>
+						);
+					},
+				},
+			),
+			columnHelper.accessor(
+				(row: any) => {
+					if (!row.enabled) return "3disabled";
+					if (row.meta.nginxOnline) return "2online";
+					return "1offline";
 				},
 				{
 					id: "enabled",
@@ -106,8 +142,16 @@ export default function Table({
 					},
 				},
 			),
-			columnHelper.display({
+			columnHelper.accessor((row: any) => row.id, {
 				id: "id",
+				header: "ID",
+				cell: (info: any) => info.getValue(),
+				meta: {
+					className: "text-end w-1",
+				},
+			}),
+			columnHelper.display({
+				id: "actions",
 				cell: (info: any) => {
 					return (
 						<span className="dropdown">
@@ -196,11 +240,16 @@ export default function Table({
 			isFetching,
 		},
 		enableSortingRemoval: false,
+		state: sorting ? { sorting } : undefined,
+		onSortingChange,
 	});
 
 	return (
 		<TableLayout
 			tableInstance={tableInstance}
+			showHeader={showHeader}
+			groupBy={groupBy}
+			renderGroupLabel={renderGroupLabel}
 			emptyState={
 				<EmptyData
 					object="proxy-host"

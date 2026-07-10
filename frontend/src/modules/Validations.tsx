@@ -98,4 +98,12 @@ const validateDomains = (allowWildcards = false, maxDomains?: number) => {
 	};
 };
 
-export { validateEmail, validateNumber, validateString, validateDomains, validateDomain };
+const validateUpstreamUrl = () => {
+	return (value: string): string | undefined => {
+		if (value && !/^https?:\/\/([^/:]+|\[[a-fA-F0-9:]+\]):[0-9]+$/.test(value)) {
+			return intl.formatMessage({ id: "error.invalid-upstream-url" });
+		}
+	};
+};
+
+export { validateEmail, validateNumber, validateString, validateDomains, validateDomain, validateUpstreamUrl };
