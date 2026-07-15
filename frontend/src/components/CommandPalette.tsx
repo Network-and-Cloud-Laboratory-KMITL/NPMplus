@@ -96,7 +96,7 @@ export function CommandPalette() {
 						onChange={(event) => setQuery(event.target.value)}
 						placeholder="Search resources or run a command…"
 					/>
-					<button type="button" onClick={() => setOpen(false)}>
+					<button type="button" onClick={() => setOpen(false)} aria-label="Close command palette">
 						<IconX />
 					</button>
 				</header>

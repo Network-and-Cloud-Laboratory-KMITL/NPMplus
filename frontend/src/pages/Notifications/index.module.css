@@ -21,4 +21,5 @@
 .empty svg { color: #2d9d65; }
 .empty h2 { margin: 1rem 0 .3rem; }
 .empty p { color: var(--tblr-secondary-color); }
-@media (max-width: 680px) { .page > header { align-items: flex-start; flex-direction: column; } .item { grid-template-columns: auto 1fr; } .item > button { grid-column: 2; justify-self: start; } .itemTitle { align-items: flex-start; flex-direction: column; gap: .2rem; } }
+@media (max-width: 680px) { .page > header { align-items: flex-start; flex-direction: column; }.page h1 { font-size: 1.75rem; } .item { grid-template-columns: auto minmax(0, 1fr); padding: .9rem; } .item > button { grid-column: 2; justify-self: start; } .itemTitle { align-items: flex-start; flex-direction: column; gap: .2rem; }.item p { overflow-wrap: anywhere; } }
+@media (max-width: 420px) { .item { gap: .7rem; }.icon { width: 36px; height: 36px; }.item > button { grid-column: 1 / -1; width: 100%; }.empty { padding-block: 3rem; } }

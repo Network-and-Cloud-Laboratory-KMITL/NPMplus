@@ -8,7 +8,7 @@ import { deleteProxyHost, toggleProxyHost } from "src/api/backend";
 import { platformApi } from "src/api/v1";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { getDirectory, useProxyHosts } from "src/hooks";
-import { T } from "src/locale";
+import { intl, T } from "src/locale";
 import { showDeleteConfirmModal, showHelpModal, showProxyHostModal } from "src/modals";
 import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
 import { showObjectSuccess } from "src/notifications";
@@ -164,9 +164,7 @@ export default function TableWrapper() {
 												if (view) setSearch(`${view.configuration.search || ""}`);
 											}}
 										>
-											<option value="">
-												<T id="table.saved-views" />
-											</option>
+											<option value="">{intl.formatMessage({ id: "table.saved-views" })}</option>
 											{savedViews.data?.data.map((view) => (
 												<option key={view.id} value={view.id}>
 													{view.name}

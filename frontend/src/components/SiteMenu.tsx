@@ -15,7 +15,7 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import type { ElementType } from "react";
-import { HasPermission, NavLink } from "src/components";
+import { HasPermission, LocalePicker, NavLink, ThemeSwitcher } from "src/components";
 import { T } from "src/locale";
 import {
 	ACCESS_LISTS,
@@ -55,40 +55,82 @@ export function SiteMenu() {
 		localStorage.setItem("nacl-sidebar-collapsed", `${collapsed}`);
 	}, [collapsed]);
 
-	const closeMobile = () => document.querySelector("[data-app-sidebar]")?.classList.remove("is-mobile-open");
+	const closeMobile = () => {
+		document.querySelector("[data-app-sidebar]")?.classList.remove("is-mobile-open");
+		document.body.classList.remove("sidebar-open");
+	};
 
 	return (
-		<aside className={styles.sidebar} data-app-sidebar>
-			<div className={styles.brand}>
-				<img src="/images/nacl-logo-text-horizontal.png" alt="NaCl" className={styles.fullLogo} />
-				<img src="/images/logo-no-text.svg" alt="NaCl" className={styles.markLogo} />
-				<button type="button" className={styles.mobileClose} onClick={closeMobile} aria-label="Close navigation"><IconX /></button>
-			</div>
-			<div className={styles.environment}><span /><div><strong><T id="nav.control-plane" /></strong><small><T id="nav.operational" /></small></div></div>
-			<nav className={styles.navigation} aria-label="Primary navigation">
-				<p className={styles.groupLabel}><T id="nav.edge" /></p>
-				{links.map((item) => (
-					<HasPermission key={item.to} section={item.section} permission={VIEW} hideError>
-						<NavLink to={item.to} className={styles.link} onClick={closeMobile}>
-							<item.icon size={21} stroke={1.8} />
-							<span><T id={item.label} /></span>
-						</NavLink>
-					</HasPermission>
-				))}
-				<HasPermission section={ADMIN} permission={VIEW} hideError>
-					<p className={styles.groupLabel}><T id="nav.administration" /></p>
-					{adminLinks.map((item) => (
-						<NavLink key={item.to} to={item.to} className={styles.link} onClick={closeMobile}>
-							<item.icon size={21} stroke={1.8} />
-							<span><T id={item.label} /></span>
-						</NavLink>
+		<>
+			<aside className={styles.sidebar} data-app-sidebar>
+				<div className={styles.brand}>
+					<img src="/images/nacl-logo-text-horizontal.png" alt="NaCl" className={styles.fullLogo} />
+					<img src="/images/logo-no-text.svg" alt="NaCl" className={styles.markLogo} />
+					<button
+						type="button"
+						className={styles.mobileClose}
+						onClick={closeMobile}
+						aria-label="Close navigation"
+					>
+						<IconX />
+					</button>
+				</div>
+				<div className={styles.environment}>
+					<span />
+					<div>
+						<strong>
+							<T id="nav.control-plane" />
+						</strong>
+						<small>
+							<T id="nav.operational" />
+						</small>
+					</div>
+				</div>
+				<nav className={styles.navigation} aria-label="Primary navigation">
+					<p className={styles.groupLabel}>
+						<T id="nav.edge" />
+					</p>
+					{links.map((item) => (
+						<HasPermission key={item.to} section={item.section} permission={VIEW} hideError>
+							<NavLink to={item.to} className={styles.link} onClick={closeMobile}>
+								<item.icon size={21} stroke={1.8} />
+								<span>
+									<T id={item.label} />
+								</span>
+							</NavLink>
+						</HasPermission>
 					))}
-				</HasPermission>
-			</nav>
-			<button type="button" className={styles.collapse} onClick={() => setCollapsed((value) => !value)} aria-label="Toggle sidebar">
-				<IconChevronLeft size={19} />
-				<span><T id="nav.collapse" /></span>
-			</button>
-		</aside>
+					<HasPermission section={ADMIN} permission={VIEW} hideError>
+						<p className={styles.groupLabel}>
+							<T id="nav.administration" />
+						</p>
+						{adminLinks.map((item) => (
+							<NavLink key={item.to} to={item.to} className={styles.link} onClick={closeMobile}>
+								<item.icon size={21} stroke={1.8} />
+								<span>
+									<T id={item.label} />
+								</span>
+							</NavLink>
+						))}
+					</HasPermission>
+				</nav>
+				<div className={styles.mobilePreferences}>
+					<LocalePicker />
+					<ThemeSwitcher />
+				</div>
+				<button
+					type="button"
+					className={styles.collapse}
+					onClick={() => setCollapsed((value) => !value)}
+					aria-label="Toggle sidebar"
+				>
+					<IconChevronLeft size={19} />
+					<span>
+						<T id="nav.collapse" />
+					</span>
+				</button>
+			</aside>
+			<button type="button" className={styles.backdrop} onClick={closeMobile} aria-label="Close navigation" />
+		</>
 	);
 }

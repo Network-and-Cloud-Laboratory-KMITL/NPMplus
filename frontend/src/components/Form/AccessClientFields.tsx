@@ -68,12 +68,8 @@ export function AccessClientFields({ initialValues, name = "clients" }: Props) {
 									value={client.directive}
 									onChange={(e) => handleChange(idx, "directive", e.target.value)}
 								>
-									<option value="allow">
-										<T id="action.allow" />
-									</option>
-									<option value="deny">
-										<T id="action.deny" />
-									</option>
+									<option value="allow">{intl.formatMessage({ id: "action.allow" })}</option>
+									<option value="deny">{intl.formatMessage({ id: "action.deny" })}</option>
 								</select>
 							</span>
 							<input
@@ -124,12 +120,8 @@ export function AccessClientFields({ initialValues, name = "clients" }: Props) {
 								value={values[values.length - 1].directive}
 								onChange={(e) => handleChange(values.length - 1, "directive", e.target.value)}
 							>
-								<option value="allow">
-									<T id="action.allow" />
-								</option>
-								<option value="deny">
-									<T id="action.deny" />
-								</option>
+								<option value="allow">{intl.formatMessage({ id: "action.allow" })}</option>
+								<option value="deny">{intl.formatMessage({ id: "action.deny" })}</option>
 							</select>
 						</span>
 						<input

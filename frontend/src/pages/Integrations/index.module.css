@@ -6,7 +6,7 @@
 .secretAlert { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem; margin: 0; border: 1px solid rgba(47, 179, 111, 0.24); }
 .secretAlert > div { display: flex; align-items: center; gap: 0.7rem; }
 .secretAlert > div span { display: flex; flex-direction: column; }
-.secretAlert code { overflow: auto; padding: 0.65rem; border-radius: 8px; background: rgba(0,0,0,.08); }
+.secretAlert code { max-width: 100%; min-width: 0; overflow: auto; padding: 0.65rem; border-radius: 8px; background: rgba(0,0,0,.08); }
 .editor, .integrationCard, .resourceSection { border: 1px solid var(--tblr-border-color); border-radius: 16px; background: var(--tblr-bg-surface); box-shadow: 0 10px 30px rgba(24, 44, 67, 0.055); }
 .editor { padding: 1.35rem; }
 .editorHeading { display: flex; gap: 0.8rem; margin-bottom: 1rem; }
@@ -19,7 +19,8 @@
 .formActions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 540px), 1fr)); gap: 1rem; }
 .integrationCard { overflow: hidden; }
-.integrationCard > header { display: flex; align-items: center; gap: .8rem; padding: 1.2rem; border-bottom: 1px solid var(--tblr-border-color); }
+.integrationCard > header { display: flex; align-items: center; gap: .8rem; min-width: 0; padding: 1.2rem; border-bottom: 1px solid var(--tblr-border-color); }
+.integrationCard > header > div:nth-child(2) { min-width: 0; }
 .integrationCard h2, .integrationCard p { margin: 0; }
 .integrationCard h2 { font-size: 1rem; }
 .integrationCard p { color: var(--tblr-secondary-color); font-size: .76rem; }
@@ -50,4 +51,5 @@
 .compactForm { display: flex; flex-wrap: wrap; gap: .5rem; padding: .8rem; margin-bottom: .6rem; border-radius: 10px; background: var(--tblr-bg-surface-secondary); }
 .compactForm input { flex: 1 1 180px; }
 .compactForm label { display: flex; align-items: center; gap: .3rem; font-size: .75rem; }
-@media (max-width: 780px) { .pageHeader { align-items: flex-start; flex-direction: column; } .splitSections, .formGrid { grid-template-columns: 1fr; } .secretAlert { grid-template-columns: 1fr; } .policyGrid { grid-template-columns: 1fr; } .keyRow { grid-template-columns: 1fr auto; } .keyRow span { grid-row: 2; } }
+@media (max-width: 780px) { .pageHeader { align-items: flex-start; flex-direction: column; } .pageHeader h1 { font-size: 1.75rem; } .splitSections, .formGrid { grid-template-columns: 1fr; } .secretAlert { grid-template-columns: 1fr; } .policyGrid { grid-template-columns: 1fr; } .keyRow { grid-template-columns: minmax(0, 1fr) auto; } .keyRow span { grid-row: 2; } }
+@media (max-width: 480px) { .page { gap: 1rem; }.pageHeader > button { width: 100%; }.editor, .resourceSection { padding: 1rem; }.editorHeading { align-items: flex-start; }.formActions { flex-wrap: wrap; }.formActions > button { flex: 1 1 7rem; }.integrationCard > header { align-items: flex-start; flex-wrap: wrap; padding: 1rem; }.active, .disabled { margin-left: 0; }.policyGrid, .keySection { padding-inline: 1rem; }.keyRow { grid-template-columns: 1fr auto; }.keyRow strong { overflow: hidden; text-overflow: ellipsis; }.resourceHeading { align-items: flex-start; flex-direction: column; }.resourceHeading > button { width: 100%; }.compactForm { flex-direction: column; }.compactForm input, .compactForm button { width: 100%; flex-basis: auto; } }

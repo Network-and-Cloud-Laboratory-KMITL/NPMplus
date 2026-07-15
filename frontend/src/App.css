@@ -6,12 +6,29 @@
 	--nacl-danger: #e45664;
 }
 
+html,
+body,
+#root {
+	width: 100%;
+	min-width: 0;
+	min-height: 100%;
+}
+
+html,
+body {
+	overflow-x: clip;
+}
+
+body { margin: 0; }
+body.sidebar-open { overflow: hidden; }
+
 body {
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 }
 
 .card {
+	min-width: 0;
 	border-color: color-mix(in srgb, var(--tblr-border-color) 86%, var(--nacl-blue) 14%);
 	border-radius: 15px;
 	box-shadow: 0 9px 28px rgba(22, 44, 68, 0.05);
@@ -41,6 +58,12 @@ body {
 
 .table {
 	--tblr-table-border-color: color-mix(in srgb, var(--tblr-border-color) 88%, transparent);
+}
+
+.table-responsive {
+	max-width: 100%;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-inline: contain;
 }
 
 .table thead th {
@@ -199,6 +222,24 @@ label.row {
   :host, :root {
     margin-left: 0;
   }
+}
+
+@media (max-width: 767px) {
+	.card { border-radius: 12px; }
+	.card-header { min-height: 0; padding: .85rem; }
+	.card-header .row { gap: .7rem; min-width: 0; }
+	.card-header .col,
+	.card-header [class*="col-"] { width: 100%; min-width: 0; }
+	.card-header .btn-list { justify-content: flex-start; width: 100%; margin-left: 0 !important; }
+	.card-header .input-group-flat { min-width: 0; flex: 1 1 11rem; }
+	.modal-dialog { margin: .5rem; }
+	.modal-content { max-height: calc(100dvh - 1rem); }
+	.modal-body { overflow-y: auto; }
+	.modal-header,
+	.modal-body,
+	.modal-footer { padding: .9rem; }
+	.table thead th,
+	.table tbody td { padding-inline: .65rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -32,8 +32,12 @@ function TwoFactorForm() {
 				<IconKey size={24} />
 			</div>
 			<p className={styles.eyebrow}>Secure verification</p>
-			<h1><T id="login.2fa-title" /></h1>
-			<p className={styles.description}><T id="login.2fa-description" /></p>
+			<h1>
+				<T id="login.2fa-title" />
+			</h1>
+			<p className={styles.description}>
+				<T id="login.2fa-description" />
+			</p>
 			{formErr && <Alert variant="danger">{formErr}</Alert>}
 			<Formik initialValues={{ code: "" }} onSubmit={onSubmit}>
 				{({ isSubmitting }) => (
@@ -58,8 +62,12 @@ function TwoFactorForm() {
 							)}
 						</Field>
 						<div className="d-flex gap-2 mt-4">
-							<Button type="button" fullWidth onClick={cancelTwoFactor} disabled={isSubmitting}><T id="cancel" /></Button>
-							<Button type="submit" fullWidth color="azure" isLoading={isSubmitting}><T id="login.2fa-verify" /></Button>
+							<Button type="button" fullWidth onClick={cancelTwoFactor} disabled={isSubmitting}>
+								<T id="cancel" />
+							</Button>
+							<Button type="submit" fullWidth color="azure" isLoading={isSubmitting}>
+								<T id="login.2fa-verify" />
+							</Button>
 						</div>
 					</Form>
 				)}
@@ -95,7 +103,14 @@ function PasswordForm() {
 							{({ field, form }: any) => (
 								<label className="form-label w-100">
 									<T id="email-address" />
-									<input {...field} ref={emailRef} type="email" autoComplete="username" required className={`${styles.input} form-control ${form.errors.email && form.touched.email ? "is-invalid" : ""}`} />
+									<input
+										{...field}
+										ref={emailRef}
+										type="email"
+										autoComplete="username"
+										required
+										className={`${styles.input} form-control ${form.errors.email && form.touched.email ? "is-invalid" : ""}`}
+									/>
 									<div className="invalid-feedback">{form.errors.email}</div>
 								</label>
 							)}
@@ -104,12 +119,21 @@ function PasswordForm() {
 							{({ field, form }: any) => (
 								<label className="form-label w-100 mt-2">
 									<T id="password" />
-									<input {...field} type="password" autoComplete="current-password" required maxLength={255} className={`${styles.input} form-control ${form.errors.password && form.touched.password ? "is-invalid" : ""}`} />
+									<input
+										{...field}
+										type="password"
+										autoComplete="current-password"
+										required
+										maxLength={255}
+										className={`${styles.input} form-control ${form.errors.password && form.touched.password ? "is-invalid" : ""}`}
+									/>
 									<div className="invalid-feedback">{form.errors.password}</div>
 								</label>
 							)}
 						</Field>
-						<Button type="submit" fullWidth color="azure" isLoading={isSubmitting} className="mt-3"><T id="sign-in" /></Button>
+						<Button type="submit" fullWidth color="azure" isLoading={isSubmitting} className="mt-3">
+							<T id="sign-in" />
+						</Button>
 					</Form>
 				)}
 			</Formik>
@@ -128,15 +152,31 @@ function LoginForm() {
 
 	return (
 		<div className={styles.authContent}>
-			<p className={styles.eyebrow}><T id="login.welcome" /></p>
-			<h1><T id="login.modern-title" /></h1>
-			<p className={styles.description}><T id="login.modern-description" /></p>
+			<p className={styles.eyebrow}>
+				<T id="login.welcome" />
+			</p>
+			<h1>
+				<T id="login.modern-title" />
+			</h1>
+			<p className={styles.description}>
+				<T id="login.modern-description" />
+			</p>
 
 			{health.data?.oidc && (
-				<button className={styles.oidcButton} type="button" onClick={() => { window.location.href = "/api/oidc"; }}>
-					<span className={styles.oidcIcon}><IconShieldCheck size={24} /></span>
+				<button
+					className={styles.oidcButton}
+					type="button"
+					onClick={() => {
+						window.location.href = "/api/oidc";
+					}}
+				>
+					<span className={styles.oidcIcon}>
+						<IconShieldCheck size={24} />
+					</span>
 					<span className={styles.oidcText}>
-						<small><T id="login.recommended" /></small>
+						<small>
+							<T id="login.recommended" />
+						</small>
 						<strong>{providerName}</strong>
 					</span>
 					<IconArrowRight size={22} />
@@ -146,7 +186,12 @@ function LoginForm() {
 			{health.data?.password && (
 				<>
 					{health.data.oidc && (
-						<button className={styles.localToggle} type="button" aria-expanded={showPassword} onClick={() => setShowPassword((value) => !value)}>
+						<button
+							className={styles.localToggle}
+							type="button"
+							aria-expanded={showPassword}
+							onClick={() => setShowPassword((value) => !value)}
+						>
 							<IconLock size={17} />
 							<T id={showPassword ? "login.hide-local" : "login.use-local"} />
 						</button>
@@ -172,21 +217,53 @@ export default function Login() {
 			<div className={styles.orbTwo} />
 			<header className={styles.topbar}>
 				<img src="/images/nacl-logo-text-horizontal.png" alt="Network And Cloud Laboratory" />
-				<div className="d-flex align-items-center gap-1"><LocalePicker /><ThemeSwitcher /></div>
+				<div className="d-flex align-items-center gap-1">
+					<LocalePicker />
+					<ThemeSwitcher />
+				</div>
 			</header>
 			<main className={styles.shell}>
 				<section className={styles.brandPanel}>
-					<div className={styles.productBadge}><span /><T id="login.platform-label" /></div>
-					<h2><T id="login.brand-title" /></h2>
-					<p><T id="login.brand-description" /></p>
+					<div className={styles.productBadge}>
+						<span className={styles.statusDot} />
+						<T id="login.platform-label" />
+					</div>
+					<h2>
+						<T id="login.brand-title" />
+					</h2>
+					<p>
+						<T id="login.brand-description" />
+					</p>
 					<div className={styles.featureGrid}>
-						<div><IconRoute /><span><strong><T id="login.feature-routing" /></strong><small><T id="login.feature-routing-copy" /></small></span></div>
-						<div><IconShieldCheck /><span><strong><T id="login.feature-security" /></strong><small><T id="login.feature-security-copy" /></small></span></div>
+						<div>
+							<IconRoute />
+							<span>
+								<strong>
+									<T id="login.feature-routing" />
+								</strong>
+								<small>
+									<T id="login.feature-routing-copy" />
+								</small>
+							</span>
+						</div>
+						<div>
+							<IconShieldCheck />
+							<span>
+								<strong>
+									<T id="login.feature-security" />
+								</strong>
+								<small>
+									<T id="login.feature-security-copy" />
+								</small>
+							</span>
+						</div>
 					</div>
 				</section>
 				<section className={styles.authCard}>{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}</section>
 			</main>
-			<footer className={styles.footer}><T id="login.footer" /></footer>
+			<footer className={styles.footer}>
+				<T id="login.footer" />
+			</footer>
 		</Page>
 	);
 }

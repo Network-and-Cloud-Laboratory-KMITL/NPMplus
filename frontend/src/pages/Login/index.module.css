@@ -1,8 +1,12 @@
 .page {
 	position: relative;
-	display: flex;
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr) auto;
+	width: 100%;
 	min-height: 100vh;
-	overflow: hidden;
+	min-height: 100dvh;
+	overflow-x: clip;
+	overflow-y: auto;
 	background:
 		linear-gradient(135deg, rgba(31, 157, 249, 0.08), transparent 42%),
 		var(--tblr-body-bg);
@@ -56,7 +60,7 @@
 	display: grid;
 	grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
 	width: min(1120px, calc(100% - 3rem));
-	margin: auto;
+	margin: 1rem auto;
 	border: 1px solid rgba(98, 119, 148, 0.18);
 	border-radius: 28px;
 	box-shadow: 0 30px 80px rgba(18, 38, 63, 0.16);
@@ -104,9 +108,11 @@
 	font-weight: 700;
 	letter-spacing: 0.09em;
 	text-transform: uppercase;
+	white-space: nowrap;
 }
 
-.productBadge > span {
+.statusDot {
+	flex: 0 0 auto;
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
@@ -213,7 +219,7 @@
 @keyframes reveal { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 900px) {
-	.shell { grid-template-columns: 1fr; width: min(570px, calc(100% - 2rem)); margin: 1.5rem auto; }
+	.shell { grid-template-columns: minmax(0, 1fr); width: min(570px, calc(100% - 2rem)); margin: 1rem auto; }
 	.brandPanel { min-height: auto; padding: 2.4rem; }
 	.brandPanel h2 { font-size: 2.2rem; }
 	.brandPanel > p { margin-bottom: 0; }
@@ -222,12 +228,26 @@
 }
 
 @media (max-width: 560px) {
-	.topbar { width: calc(100% - 2rem); }
+	.topbar { width: calc(100% - 1.5rem); padding: .85rem 0; }
 	.topbar img { width: 150px; height: 40px; }
-	.brandPanel { padding: 2rem 1.5rem; }
-	.brandPanel h2 { font-size: 1.85rem; }
-	.authCard { padding: 2.4rem 1.5rem; }
+	.shell { width: calc(100% - 1rem); margin: .25rem auto .75rem; border-radius: 20px; }
+	.brandPanel { padding: 1.5rem; }
+	.productBadge { margin-bottom: 1rem; font-size: .66rem; }
+	.brandPanel h2 { max-width: 18rem; font-size: 1.75rem; }
+	.brandPanel > p { margin: .85rem 0 0; font-size: .86rem; line-height: 1.55; }
+	.authCard { padding: 1.75rem 1.5rem; }
 	.authContent h1 { font-size: 1.7rem; }
+	.description { margin: .7rem 0 1.4rem; font-size: .88rem; }
+	.oidcButton { min-height: 64px; }
+	.securityNote { margin-top: 1.2rem; font-size: .7rem; }
+	.footer { padding: .7rem 1rem 1rem; }
+}
+
+@media (max-width: 370px) {
+	.topbar img { width: 132px; }
+	.brandPanel, .authCard { padding-inline: 1.15rem; }
+	.oidcButton { padding-inline: .7rem; }
+	.oidcText strong { font-size: .9rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
