@@ -1,4 +1,5 @@
 export * from "./Button";
+export * from "./BrandMark";
 export * from "./CommandPalette";
 export * from "./EmptyData";
 export * from "./ErrorNotFound";

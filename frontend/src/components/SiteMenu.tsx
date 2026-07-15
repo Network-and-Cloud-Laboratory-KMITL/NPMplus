@@ -15,7 +15,7 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import type { ElementType } from "react";
-import { HasPermission, LocalePicker, NavLink, ThemeSwitcher } from "src/components";
+import { BrandMark, HasPermission, LocalePicker, NavLink, ThemeSwitcher } from "src/components";
 import { T } from "src/locale";
 import {
 	ACCESS_LISTS,
@@ -65,7 +65,7 @@ export function SiteMenu() {
 			<aside className={styles.sidebar} data-app-sidebar>
 				<div className={styles.brand}>
 					<img src="/images/nacl-logo-text-horizontal.png" alt="NaCl" className={styles.fullLogo} />
-					<img src="/images/logo-no-text.svg" alt="NaCl" className={styles.markLogo} />
+					<BrandMark className={styles.markLogo} />
 					<button
 						type="button"
 						className={styles.mobileClose}

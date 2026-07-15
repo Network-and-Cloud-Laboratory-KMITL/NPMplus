@@ -1,4 +1,5 @@
-import { Loading, Page } from "src/components";
+import { Loading } from "src/components";
+import styles from "./LoadingPage.module.css";
 
 interface Props {
 	label?: string;
@@ -6,10 +7,10 @@ interface Props {
 }
 export function LoadingPage({ label, noLogo }: Props) {
 	return (
-		<Page className="page-center">
-			<div className="container-tight py-4">
+		<div className={styles.page}>
+			<div className={styles.content}>
 				<Loading label={label} noLogo={noLogo} />
 			</div>
-		</Page>
+		</div>
 	);
 }

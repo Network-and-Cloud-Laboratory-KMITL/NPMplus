@@ -1,4 +1,4 @@
-import { IconArrowRight, IconKey, IconLock, IconRoute, IconShieldCheck } from "@tabler/icons-react";
+import { IconArrowRight, IconKey, IconLock, IconShieldCheck } from "@tabler/icons-react";
 import { Field, Form, Formik } from "formik";
 import { useEffect, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -28,10 +28,7 @@ function TwoFactorForm() {
 
 	return (
 		<div className={styles.authContent}>
-			<div className={styles.authIcon}>
-				<IconKey size={24} />
-			</div>
-			<p className={styles.eyebrow}>Secure verification</p>
+			<IconKey className={styles.formIcon} size={24} />
 			<h1>
 				<T id="login.2fa-title" />
 			</h1>
@@ -152,11 +149,8 @@ function LoginForm() {
 
 	return (
 		<div className={styles.authContent}>
-			<p className={styles.eyebrow}>
-				<T id="login.welcome" />
-			</p>
 			<h1>
-				<T id="login.modern-title" />
+				<T id="login.title" />
 			</h1>
 			<p className={styles.description}>
 				<T id="login.modern-description" />
@@ -170,16 +164,9 @@ function LoginForm() {
 						window.location.href = "/api/oidc";
 					}}
 				>
-					<span className={styles.oidcIcon}>
-						<IconShieldCheck size={24} />
-					</span>
-					<span className={styles.oidcText}>
-						<small>
-							<T id="login.recommended" />
-						</small>
-						<strong>{providerName}</strong>
-					</span>
-					<IconArrowRight size={22} />
+					<IconShieldCheck size={20} />
+					<span>{providerName}</span>
+					<IconArrowRight className={styles.oidcArrow} size={19} />
 				</button>
 			)}
 
@@ -199,11 +186,6 @@ function LoginForm() {
 					{showPassword && <PasswordForm />}
 				</>
 			)}
-
-			<div className={styles.securityNote}>
-				<IconShieldCheck size={18} />
-				<T id="login.security-note" />
-			</div>
 		</div>
 	);
 }
@@ -213,8 +195,6 @@ export default function Login() {
 
 	return (
 		<Page className={styles.page}>
-			<div className={styles.orbOne} />
-			<div className={styles.orbTwo} />
 			<header className={styles.topbar}>
 				<img src="/images/nacl-logo-text-horizontal.png" alt="Network And Cloud Laboratory" />
 				<div className="d-flex align-items-center gap-1">
@@ -223,42 +203,6 @@ export default function Login() {
 				</div>
 			</header>
 			<main className={styles.shell}>
-				<section className={styles.brandPanel}>
-					<div className={styles.productBadge}>
-						<span className={styles.statusDot} />
-						<T id="login.platform-label" />
-					</div>
-					<h2>
-						<T id="login.brand-title" />
-					</h2>
-					<p>
-						<T id="login.brand-description" />
-					</p>
-					<div className={styles.featureGrid}>
-						<div>
-							<IconRoute />
-							<span>
-								<strong>
-									<T id="login.feature-routing" />
-								</strong>
-								<small>
-									<T id="login.feature-routing-copy" />
-								</small>
-							</span>
-						</div>
-						<div>
-							<IconShieldCheck />
-							<span>
-								<strong>
-									<T id="login.feature-security" />
-								</strong>
-								<small>
-									<T id="login.feature-security-copy" />
-								</small>
-							</span>
-						</div>
-					</div>
-				</section>
 				<section className={styles.authCard}>{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}</section>
 			</main>
 			<footer className={styles.footer}>

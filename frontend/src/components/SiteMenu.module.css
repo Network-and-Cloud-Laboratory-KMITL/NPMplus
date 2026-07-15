@@ -4,17 +4,17 @@
 	z-index: 1040;
 	display: flex;
 	flex-direction: column;
-	width: 264px;
+	width: 248px;
 	height: 100vh;
-	padding: 1rem 0.85rem;
-	border-right: 1px solid rgba(99, 125, 155, 0.16);
-	background: color-mix(in srgb, var(--tblr-bg-surface) 97%, #1f9df9 3%);
+	padding: .85rem .7rem;
+	border-right: 1px solid var(--tblr-border-color);
+	background: var(--tblr-bg-surface);
 	transition: width 180ms ease, transform 180ms ease;
 }
 
-.brand { display: flex; align-items: center; height: 56px; padding: 0 0.55rem; }
-.fullLogo { width: 178px; max-height: 44px; object-fit: contain; object-position: left center; }
-.markLogo { display: none; width: 36px; height: 36px; }
+.brand { display: flex; align-items: center; height: 52px; padding: 0 0.55rem; }
+.fullLogo { width: 168px; max-height: 40px; object-fit: contain; object-position: left center; }
+.markLogo { display: none; width: 32px; height: 32px; }
 .mobileClose { display: none; margin-left: auto; border: 0; color: inherit; background: transparent; }
 .mobilePreferences { display: none; }
 .backdrop { display: none; }
@@ -23,25 +23,24 @@
 	display: flex;
 	align-items: center;
 	gap: 0.7rem;
-	margin: 0.9rem 0.4rem 1.15rem;
-	padding: 0.75rem;
-	border: 1px solid var(--tblr-border-color);
-	border-radius: 12px;
-	background: var(--tblr-bg-surface-secondary);
+	margin: .65rem .5rem 1rem;
+	padding: .7rem .15rem;
+	border-top: 1px solid var(--tblr-border-color);
+	border-bottom: 1px solid var(--tblr-border-color);
 }
-.environment > span { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; background: #39b875; box-shadow: 0 0 0 5px rgba(57, 184, 117, 0.12); }
+.environment > span { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #39a96b; }
 .environment div { display: flex; min-width: 0; flex-direction: column; }
 .environment strong { font-size: 0.77rem; }
 .environment small { overflow: hidden; color: var(--tblr-secondary-color); font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; }
 
 .navigation { flex: 1; min-height: 0; overflow-y: auto; }
-.groupLabel { margin: 1.1rem 0.75rem 0.5rem; color: var(--tblr-secondary-color); font-size: 0.65rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
-.link { display: flex !important; align-items: center; gap: 0.8rem; min-height: 43px; margin: 0.15rem 0; padding: 0.65rem 0.78rem !important; border-radius: 10px; color: var(--tblr-secondary-color) !important; font-size: 0.84rem; font-weight: 600; }
+.groupLabel { margin: 1rem 0.75rem 0.45rem; color: var(--tblr-secondary-color); font-size: 0.68rem; font-weight: 650; }
+.link { display: flex !important; align-items: center; gap: 0.75rem; min-height: 41px; margin: 0.1rem 0; padding: 0.6rem 0.75rem !important; border-radius: 6px; color: var(--tblr-secondary-color) !important; font-size: 0.84rem; font-weight: 550; }
 .link:hover { color: var(--tblr-body-color) !important; background: var(--tblr-bg-surface-secondary); }
-.link:global(.active) { color: #168fe4 !important; background: rgba(31, 157, 249, 0.11); box-shadow: inset 3px 0 #1f9df9; }
+.link:global(.active) { color: #117fc7 !important; background: rgba(31, 157, 249, 0.09); }
 .link svg { flex: 0 0 auto; }
 
-.collapse { display: flex; align-items: center; gap: 0.8rem; min-height: 42px; padding: 0.6rem 0.78rem; border: 0; border-radius: 10px; color: var(--tblr-secondary-color); background: transparent; font-size: 0.78rem; }
+.collapse { display: flex; align-items: center; gap: 0.8rem; min-height: 40px; padding: 0.6rem 0.75rem; border: 0; border-radius: 6px; color: var(--tblr-secondary-color); background: transparent; font-size: 0.78rem; }
 .collapse:hover { color: var(--tblr-body-color); background: var(--tblr-bg-surface-secondary); }
 
 :global(html[data-sidebar-collapsed="true"]) .sidebar { width: 78px; }
@@ -72,6 +71,6 @@
 	:global(html[data-sidebar-collapsed="true"]) .environment > span,
 	:global(html[data-sidebar-collapsed="true"]) .groupLabel,
 	:global(html[data-sidebar-collapsed="true"]) .link span { display: flex; }
-	:global(html[data-sidebar-collapsed="true"]) .environment { height: auto; margin: 0.9rem 0.4rem 1.15rem; padding: 0.75rem; border: 1px solid var(--tblr-border-color); background: var(--tblr-bg-surface-secondary); }
+	:global(html[data-sidebar-collapsed="true"]) .environment { height: auto; margin: .65rem .5rem 1rem; padding: .7rem .15rem; border: 0; border-top: 1px solid var(--tblr-border-color); border-bottom: 1px solid var(--tblr-border-color); background: transparent; }
 	:global(html[data-sidebar-collapsed="true"]) .link { justify-content: flex-start; padding-inline: 0.78rem !important; }
 }

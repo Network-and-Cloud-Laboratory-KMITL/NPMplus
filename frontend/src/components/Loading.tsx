@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { BrandMark } from "src/components/BrandMark";
 import { T } from "src/locale";
 import styles from "./Loading.module.css";
 
@@ -8,15 +9,18 @@ interface Props {
 }
 export function Loading({ label, noLogo }: Props) {
 	return (
-		<div className="empty text-center">
+		<div className={styles.loading}>
 			{noLogo ? null : (
-				<div className="mb-3">
-					<img className={styles.logo} src="/images/logo-no-text.svg" alt="" />
+				<div className={styles.brand}>
+					<BrandMark className={styles.mark} />
+					<span>NaCl Edge</span>
 				</div>
 			)}
-			<div className="text-secondary mb-3">{label || <T id="loading" />}</div>
-			<div className="progress progress-sm">
-				<div className="progress-bar progress-bar-indeterminate" />
+			<div className={styles.label}>{label || <T id="loading" />}</div>
+			<div className={styles.progress} aria-hidden="true">
+				<span />
+				<span />
+				<span />
 			</div>
 		</div>
 	);
