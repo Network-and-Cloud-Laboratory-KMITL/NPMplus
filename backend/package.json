@@ -6,6 +6,13 @@
 	"license": "AGPL-3.0 (and MIT)",
 	"main": "index.js",
 	"type": "module",
+	"scripts": {
+		"format": "biome format --write .",
+		"lint": "biome lint .",
+		"openapi:validate": "node validate-schema.js",
+		"start": "node index.js",
+		"test": "node --test"
+	},
 	"dependencies": {
 		"@apidevtools/json-schema-ref-parser": "15.5.0",
 		"ajv": "8.20.0",

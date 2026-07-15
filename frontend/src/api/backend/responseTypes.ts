@@ -6,6 +6,7 @@ export interface HealthResponse {
 	setup: boolean;
 	password: boolean;
 	oidc: boolean;
+	oidcName: string;
 }
 
 export interface TokenResponse {

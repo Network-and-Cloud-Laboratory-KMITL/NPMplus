@@ -119,6 +119,9 @@
 	"action.close": {
 		"defaultMessage": "Close"
 	},
+	"action.copy": {
+		"defaultMessage": "Copy"
+	},
 	"action.delete": {
 		"defaultMessage": "Delete"
 	},
@@ -151,6 +154,9 @@
 	},
 	"auto": {
 		"defaultMessage": "Auto"
+	},
+	"back": {
+		"defaultMessage": "Back"
 	},
 	"cancel": {
 		"defaultMessage": "Cancel"
@@ -332,11 +338,71 @@
 	"column.status": {
 		"defaultMessage": "Status"
 	},
+	"continue": {
+		"defaultMessage": "Continue"
+	},
 	"created-on": {
 		"defaultMessage": "Created: {date}"
 	},
 	"dashboard": {
 		"defaultMessage": "Dashboard"
+	},
+	"dashboard.attention": {
+		"defaultMessage": "Needs attention"
+	},
+	"dashboard.certificates": {
+		"defaultMessage": "Certificates"
+	},
+	"dashboard.description": {
+		"defaultMessage": "A live view of routing, security, and upstream health."
+	},
+	"dashboard.edge-health": {
+		"defaultMessage": "Edge health"
+	},
+	"dashboard.edge-health-copy": {
+		"defaultMessage": "Opt-in checks across published upstreams"
+	},
+	"dashboard.expiring": {
+		"defaultMessage": "expiring within 30 days"
+	},
+	"dashboard.eyebrow": {
+		"defaultMessage": "Operations overview"
+	},
+	"dashboard.health": {
+		"defaultMessage": "Active health"
+	},
+	"dashboard.healthy": {
+		"defaultMessage": "healthy"
+	},
+	"dashboard.healthy-copy": {
+		"defaultMessage": "No active failures"
+	},
+	"dashboard.healthy-upstreams": {
+		"defaultMessage": "Healthy upstreams"
+	},
+	"dashboard.not-checked": {
+		"defaultMessage": "Awaiting checks"
+	},
+	"dashboard.recent-alerts": {
+		"defaultMessage": "Recent alerts"
+	},
+	"dashboard.recent-alerts-copy": {
+		"defaultMessage": "Health, TLS, and provisioning events"
+	},
+	"dashboard.title": {
+		"defaultMessage": "Good to see your edge."
+	},
+	"dashboard.total-hosts": {
+		"defaultMessage": "Published routes"
+	},
+	"dashboard.unhealthy-copy": {
+		"defaultMessage": "upstreams require attention"
+	},
+	"dashboard.unhealthy-upstreams": {
+		"defaultMessage": "Unhealthy upstreams"
+	},
+	"dashboard.unread-alerts": {
+		"defaultMessage": "unread operational alerts"
 	},
 	"dead-host": {
 		"defaultMessage": "404 Host"
@@ -352,6 +418,9 @@
 	},
 	"dead-hosts.count": {
 		"defaultMessage": "{count} {count, plural, one {404 Host} other {404 Hosts}}"
+	},
+	"description": {
+		"defaultMessage": "Description"
 	},
 	"disabled": {
 		"defaultMessage": "Disabled"
@@ -521,6 +590,66 @@
 	"http-only": {
 		"defaultMessage": "HTTP Only"
 	},
+	"integrations.cidrs": {
+		"defaultMessage": "Allowed upstream CIDRs"
+	},
+	"integrations.create": {
+		"defaultMessage": "Create integration"
+	},
+	"integrations.description": {
+		"defaultMessage": "Issue scoped service credentials and control exactly what external systems may publish."
+	},
+	"integrations.domains": {
+		"defaultMessage": "Allowed domain suffixes"
+	},
+	"integrations.eyebrow": {
+		"defaultMessage": "Automation and policy"
+	},
+	"integrations.guarded": {
+		"defaultMessage": "Requests are attributed, rate limited, and checked against this policy."
+	},
+	"integrations.keys": {
+		"defaultMessage": "API keys"
+	},
+	"integrations.networks": {
+		"defaultMessage": "Networks"
+	},
+	"integrations.new-title": {
+		"defaultMessage": "New trusted integration"
+	},
+	"integrations.policy-help": {
+		"defaultMessage": "Start with a narrow policy. Access can be expanded later without rotating the key."
+	},
+	"integrations.ports": {
+		"defaultMessage": "Allowed ports"
+	},
+	"integrations.rate": {
+		"defaultMessage": "Rate limit"
+	},
+	"integrations.rotate": {
+		"defaultMessage": "Rotate key"
+	},
+	"integrations.secret-copy": {
+		"defaultMessage": "This secret is shown once. Store it in your calling system now."
+	},
+	"integrations.secret-title": {
+		"defaultMessage": "Credential created"
+	},
+	"integrations.templates": {
+		"defaultMessage": "Host templates"
+	},
+	"integrations.templates-copy": {
+		"defaultMessage": "Reusable security, TLS, and health defaults"
+	},
+	"integrations.title": {
+		"defaultMessage": "Integration Center"
+	},
+	"integrations.webhooks": {
+		"defaultMessage": "Signed webhooks"
+	},
+	"integrations.webhooks-copy": {
+		"defaultMessage": "Deliver health, certificate, and provisioning events"
+	},
 	"lets-encrypt": {
 		"defaultMessage": "Certbot"
 	},
@@ -548,11 +677,80 @@
 	"login.2fa-verify": {
 		"defaultMessage": "Verify"
 	},
+	"login.brand-description": {
+		"defaultMessage": "A secure, observable control plane for publishing services, managing certificates, and operating your edge."
+	},
+	"login.brand-title": {
+		"defaultMessage": "Your network edge, clearly under control."
+	},
+	"login.feature-routing": {
+		"defaultMessage": "Confident service publishing"
+	},
+	"login.feature-routing-copy": {
+		"defaultMessage": "Route, secure, and observe applications from one place."
+	},
+	"login.feature-security": {
+		"defaultMessage": "Identity-first security"
+	},
+	"login.feature-security-copy": {
+		"defaultMessage": "NaCl Auth, scoped integrations, and complete audit history."
+	},
+	"login.footer": {
+		"defaultMessage": "Network And Cloud Laboratory · Secure infrastructure operations"
+	},
+	"login.hide-local": {
+		"defaultMessage": "Hide email sign in"
+	},
+	"login.modern-description": {
+		"defaultMessage": "Use your organization identity for the fastest and most secure sign-in experience."
+	},
+	"login.modern-title": {
+		"defaultMessage": "Welcome to the edge."
+	},
+	"login.platform-label": {
+		"defaultMessage": "NaCl Edge Operations"
+	},
+	"login.recommended": {
+		"defaultMessage": "Recommended sign in"
+	},
+	"login.security-note": {
+		"defaultMessage": "Protected by secure cookies and PKCE"
+	},
 	"login.title": {
 		"defaultMessage": "Login to your account"
 	},
+	"login.use-local": {
+		"defaultMessage": "Sign in with email instead"
+	},
+	"login.welcome": {
+		"defaultMessage": "Secure access"
+	},
 	"mtls-certificate": {
 		"defaultMessage": "mTLS Certificate"
+	},
+	"nav.administration": {
+		"defaultMessage": "Administration"
+	},
+	"nav.collapse": {
+		"defaultMessage": "Collapse sidebar"
+	},
+	"nav.control-plane": {
+		"defaultMessage": "NaCl Control Plane"
+	},
+	"nav.edge": {
+		"defaultMessage": "Edge operations"
+	},
+	"nav.integrations": {
+		"defaultMessage": "Integrations"
+	},
+	"nav.operational": {
+		"defaultMessage": "All systems operational"
+	},
+	"nav.quick-actions": {
+		"defaultMessage": "Quick actions"
+	},
+	"nav.search": {
+		"defaultMessage": "Search resources or run a command"
 	},
 	"nginx-config.label": {
 		"defaultMessage": "Custom Nginx Configuration"
@@ -596,6 +794,27 @@
 	"notification.success": {
 		"defaultMessage": "Success"
 	},
+	"notifications.acknowledge": {
+		"defaultMessage": "Acknowledge"
+	},
+	"notifications.clear": {
+		"defaultMessage": "Everything looks clear"
+	},
+	"notifications.clear-copy": {
+		"defaultMessage": "There are no operational alerts requiring your attention."
+	},
+	"notifications.description": {
+		"defaultMessage": "Health transitions, certificate warnings, and provisioning results in one place."
+	},
+	"notifications.eyebrow": {
+		"defaultMessage": "Operational inbox"
+	},
+	"notifications.title": {
+		"defaultMessage": "Notifications"
+	},
+	"notifications.unread": {
+		"defaultMessage": "unread"
+	},
 	"object.actions-title": {
 		"defaultMessage": "{object} #{id}"
 	},
@@ -625,6 +844,12 @@
 	},
 	"object.event.enabled": {
 		"defaultMessage": "Enabled {object}"
+	},
+	"object.event.key-created": {
+		"defaultMessage": "Created API key for {object}"
+	},
+	"object.event.key-revoked": {
+		"defaultMessage": "Revoked API key for {object}"
 	},
 	"object.event.renewed": {
 		"defaultMessage": "Renewed {object}"
@@ -680,6 +905,39 @@
 	"proxy-host.access-lists": {
 		"defaultMessage": "Access Lists"
 	},
+	"proxy-host.activity": {
+		"defaultMessage": "Recent activity"
+	},
+	"proxy-host.activity-copy": {
+		"defaultMessage": "Configuration changes and the identity responsible"
+	},
+	"proxy-host.activity-empty": {
+		"defaultMessage": "No activity has been recorded for this host."
+	},
+	"proxy-host.back": {
+		"defaultMessage": "Back to proxy hosts"
+	},
+	"proxy-host.certificate": {
+		"defaultMessage": "Certificate"
+	},
+	"proxy-host.certificate-none": {
+		"defaultMessage": "No certificate is attached"
+	},
+	"proxy-host.details-eyebrow": {
+		"defaultMessage": "Proxy host diagnostics"
+	},
+	"proxy-host.details-not-found": {
+		"defaultMessage": "The proxy host could not be loaded."
+	},
+	"proxy-host.details-single-domain": {
+		"defaultMessage": "Single-domain route"
+	},
+	"proxy-host.diagnostics": {
+		"defaultMessage": "Diagnostics"
+	},
+	"proxy-host.diagnostics-copy": {
+		"defaultMessage": "Route configuration, TLS, and active monitoring"
+	},
 	"proxy-host.directory": {
 		"defaultMessage": "Group"
 	},
@@ -692,8 +950,47 @@
 	"proxy-host.global-access-lists": {
 		"defaultMessage": "Global Access Lists"
 	},
+	"proxy-host.health-check": {
+		"defaultMessage": "Active health check"
+	},
+	"proxy-host.health-disable": {
+		"defaultMessage": "Disable"
+	},
+	"proxy-host.health-disabled": {
+		"defaultMessage": "Monitoring is opt-in and currently disabled"
+	},
+	"proxy-host.health-enable": {
+		"defaultMessage": "Enable check"
+	},
+	"proxy-host.inspect": {
+		"defaultMessage": "Inspect and diagnose"
+	},
+	"proxy-host.integration-owner": {
+		"defaultMessage": "Managed resource"
+	},
+	"proxy-host.managed": {
+		"defaultMessage": "Integration managed"
+	},
+	"proxy-host.manual": {
+		"defaultMessage": "Created manually"
+	},
+	"proxy-host.nginx-config": {
+		"defaultMessage": "NGINX configuration"
+	},
+	"proxy-host.nginx-unavailable": {
+		"defaultMessage": "NGINX has not reported this route online"
+	},
+	"proxy-host.nginx-valid": {
+		"defaultMessage": "Configuration is valid and loaded"
+	},
 	"proxy-host.no-directory": {
 		"defaultMessage": "No group"
+	},
+	"proxy-host.open-service": {
+		"defaultMessage": "Open service"
+	},
+	"proxy-host.source": {
+		"defaultMessage": "Ownership"
 	},
 	"proxy-hosts": {
 		"defaultMessage": "Proxy Hosts"
@@ -703,6 +1000,90 @@
 	},
 	"public": {
 		"defaultMessage": "Public"
+	},
+	"publish.account": {
+		"defaultMessage": "External account"
+	},
+	"publish.action": {
+		"defaultMessage": "Publish service"
+	},
+	"publish.another": {
+		"defaultMessage": "Publish another service"
+	},
+	"publish.automatic-https": {
+		"defaultMessage": "Automatic HTTPS · HTTP/2 · HTTP/3"
+	},
+	"publish.check-dns": {
+		"defaultMessage": "Verify DNS and HTTP-01 challenge reachability"
+	},
+	"publish.check-nginx": {
+		"defaultMessage": "Generate, test, and atomically activate NGINX configuration"
+	},
+	"publish.check-policy": {
+		"defaultMessage": "Validate domain, upstream network, port, and scheme policy"
+	},
+	"publish.description": {
+		"defaultMessage": "A guided, policy-aware path from domain and upstream to an active HTTPS route."
+	},
+	"publish.dns-help": {
+		"defaultMessage": "Create the DNS record before publishing. NPMplus validates it but does not manage DNS."
+	},
+	"publish.domain": {
+		"defaultMessage": "Preferred domain"
+	},
+	"publish.external-id": {
+		"defaultMessage": "External resource ID"
+	},
+	"publish.eyebrow": {
+		"defaultMessage": "Guided workflow"
+	},
+	"publish.identity-copy": {
+		"defaultMessage": "Choose the integration policy and identify the resource this route belongs to."
+	},
+	"publish.identity-title": {
+		"defaultMessage": "Name the service"
+	},
+	"publish.integration": {
+		"defaultMessage": "Integration policy"
+	},
+	"publish.project": {
+		"defaultMessage": "External project"
+	},
+	"publish.promise": {
+		"defaultMessage": "Publishing is idempotent and compensated. A failed request will not leave an active partial route."
+	},
+	"publish.resource-id": {
+		"defaultMessage": "Managed resource ID"
+	},
+	"publish.review-copy": {
+		"defaultMessage": "NPMplus will run every preflight before the route becomes active."
+	},
+	"publish.review-title": {
+		"defaultMessage": "Review and publish"
+	},
+	"publish.step-identity": {
+		"defaultMessage": "Service identity"
+	},
+	"publish.step-review": {
+		"defaultMessage": "Preflight and publish"
+	},
+	"publish.step-upstream": {
+		"defaultMessage": "Upstream target"
+	},
+	"publish.success-eyebrow": {
+		"defaultMessage": "Route active"
+	},
+	"publish.success-title": {
+		"defaultMessage": "Your service is published securely."
+	},
+	"publish.title": {
+		"defaultMessage": "Publish a service"
+	},
+	"publish.upstream-copy": {
+		"defaultMessage": "The target must be inside the selected integration's allowed network and port policy."
+	},
+	"publish.upstream-title": {
+		"defaultMessage": "Connect the upstream"
 	},
 	"redirection-host": {
 		"defaultMessage": "Redirection Host"
@@ -839,6 +1220,15 @@
 	"streams.udp": {
 		"defaultMessage": "UDP"
 	},
+	"table.saved-views": {
+		"defaultMessage": "Saved views"
+	},
+	"table.selected": {
+		"defaultMessage": "selected"
+	},
+	"template": {
+		"defaultMessage": "Template"
+	},
 	"test": {
 		"defaultMessage": "Test"
 	},
@@ -895,5 +1285,14 @@
 	},
 	"users": {
 		"defaultMessage": "Users"
+	},
+	"view": {
+		"defaultMessage": "View"
+	},
+	"view-all": {
+		"defaultMessage": "View all"
+	},
+	"webhook": {
+		"defaultMessage": "Webhook"
 	}
 }

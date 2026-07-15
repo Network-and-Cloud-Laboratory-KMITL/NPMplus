@@ -1,5 +1,84 @@
 :root {
 	color-scheme: light dark;
+	--nacl-blue: #1f9df9;
+	--nacl-blue-dark: #167ac0;
+	--nacl-green: #33b474;
+	--nacl-danger: #e45664;
+}
+
+body {
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+.card {
+	border-color: color-mix(in srgb, var(--tblr-border-color) 86%, var(--nacl-blue) 14%);
+	border-radius: 15px;
+	box-shadow: 0 9px 28px rgba(22, 44, 68, 0.05);
+}
+
+.card-header {
+	min-height: 64px;
+	padding: 1rem 1.15rem;
+	border-color: var(--tblr-border-color);
+}
+
+.card-status-top {
+	height: 3px;
+	border-radius: 15px 15px 0 0;
+}
+
+.btn {
+	border-radius: 9px;
+	font-weight: 620;
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+	border-radius: 9px;
+}
+
+.table {
+	--tblr-table-border-color: color-mix(in srgb, var(--tblr-border-color) 88%, transparent);
+}
+
+.table thead th {
+	padding-top: 0.75rem;
+	padding-bottom: 0.75rem;
+	color: var(--tblr-secondary-color);
+	background: var(--tblr-bg-surface-secondary);
+	font-size: 0.68rem;
+	font-weight: 750;
+	letter-spacing: 0.045em;
+	text-transform: uppercase;
+}
+
+.table tbody td {
+	padding-top: 0.8rem;
+	padding-bottom: 0.8rem;
+	vertical-align: middle;
+}
+
+.table tbody tr {
+	transition: background-color 120ms ease;
+}
+
+.table tbody tr:hover {
+	background: rgba(31, 157, 249, 0.035);
+}
+
+.modal-content {
+	overflow: hidden;
+	border-color: var(--tblr-border-color);
+	border-radius: 17px;
+	box-shadow: 0 28px 80px rgba(10, 28, 47, 0.25);
+}
+
+.dropdown-menu {
+	border-color: var(--tblr-border-color);
+	border-radius: 11px;
+	box-shadow: 0 14px 35px rgba(12, 32, 52, 0.14);
 }
 
 .light {
@@ -120,4 +199,13 @@ label.row {
   :host, :root {
     margin-left: 0;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
 }

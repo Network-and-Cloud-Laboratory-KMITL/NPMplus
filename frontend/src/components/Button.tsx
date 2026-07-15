@@ -11,6 +11,7 @@ interface Props {
 	fullWidth?: boolean;
 	isLoading?: boolean;
 	disabled?: boolean;
+	title?: string;
 	color?:
 		| "blue"
 		| "azure"
@@ -38,6 +39,7 @@ function Button({
 	fullWidth,
 	isLoading,
 	disabled,
+	title,
 }: Props) {
 	const myOnClick = () => {
 		!isLoading && onClick && onClick();
@@ -55,7 +57,7 @@ function Button({
 	);
 
 	return (
-		<button type={type || "button"} className={cns} onClick={myOnClick} disabled={disabled}>
+		<button type={type || "button"} className={cns} onClick={myOnClick} disabled={disabled} title={title}>
 			{children}
 		</button>
 	);

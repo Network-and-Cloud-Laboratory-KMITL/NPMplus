@@ -17,6 +17,7 @@ import tokensRoutes from "./tokens.js";
 import oidcRoutes from "./oidc.js";
 import usersRoutes from "./users.js";
 import versionRoutes from "./version.js";
+import v1Routes from "./v1/index.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -40,12 +41,14 @@ router.get(["/api", "/api/"], async (_, res /*, next*/) => {
 		status: "OK",
 		setup: await isSetup(),
 		version: pjson.version,
-		password: process.env.OIDC_DISABLE_PASSWORD === "false",
+		password: process.env.OIDC_DISABLE_PASSWORD !== "true",
 		oidc: isOIDCenabled,
+		oidc_name: process.env.OIDC_PROVIDER_NAME || "NaCl Auth",
 	});
 });
 
 router.use("/api/docs", docsRoutes);
+router.use("/api/v1", v1Routes);
 router.use("/api/schema", schemaRoutes);
 router.use("/api/tokens", tokensRoutes);
 if (isOIDCenabled) router.use("/api/oidc", oidcRoutes);

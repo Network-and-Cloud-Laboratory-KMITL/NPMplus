@@ -4,7 +4,7 @@ import "vitest/config";
 import { execFileSync } from "node:child_process";
 
 const runLocaleScripts = () => {
-	execFileSync("pnpm", ["formatjs", "compile-folder", "src/locale/src", "src/locale/lang"], {
+	execFileSync("./node_modules/.bin/formatjs", ["compile-folder", "src/locale/src", "src/locale/lang"], {
 		stdio: "inherit",
 	});
 	execFileSync("./src/locale/scripts/locale-sort.sh", {

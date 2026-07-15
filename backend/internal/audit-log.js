@@ -75,8 +75,9 @@ const internalAuditLog = {
 	 * @returns {Promise}
 	 */
 	add: async (access, data) => {
+		const actor = access.actor || null;
 		if (typeof data.user_id === "undefined" || !data.user_id) {
-			data.user_id = access.token.getUserId(1);
+			data.user_id = actor?.user_id || access.token.getUserId(1);
 		}
 
 		if (typeof data.action === "undefined" || !data.action) {
@@ -86,6 +87,10 @@ const internalAuditLog = {
 		// Make sure at least 1 of the IDs are set and action
 		return await auditLogModel.query().insert({
 			user_id: data.user_id,
+			actor_type: actor?.type || "user",
+			actor_id: actor?.id || data.user_id,
+			request_id: actor?.request_id || "",
+			remote_address: actor?.remote_address || "",
 			action: data.action,
 			object_type: data.object_type || "",
 			object_id: data.object_id || 0,

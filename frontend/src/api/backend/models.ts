@@ -30,6 +30,10 @@ export interface AuditLog {
 	createdOn: string;
 	modifiedOn: string;
 	userId: number;
+	actorType?: "user" | "integration";
+	actorId?: number;
+	requestId?: string;
+	remoteAddress?: string;
 	objectType: string;
 	objectId: number;
 	action: string;
@@ -150,6 +154,12 @@ export interface ProxyHost {
 	accessLists?: AccessList[];
 	npmplusAccessListType: "public" | "custom";
 	certificate?: Certificate;
+	managedResource?: {
+		uuid: string;
+		externalId: string;
+		integrationId: number;
+		status: string;
+	};
 	npmplusNoindex: boolean;
 	npmplusCrowdsecAppsec: boolean;
 	npmplusProxyResponseBuffering: boolean;

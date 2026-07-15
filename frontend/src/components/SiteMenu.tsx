@@ -1,14 +1,20 @@
 import {
+	IconActivityHeartbeat,
+	IconAdjustments,
+	IconApi,
 	IconBook,
-	IconDeviceDesktop,
+	IconChevronLeft,
 	IconHome,
 	IconLock,
+	IconRoute,
+	IconServer,
 	IconSettings,
 	IconShield,
 	IconUser,
+	IconX,
 } from "@tabler/icons-react";
-import cn from "classnames";
-import React from "react";
+import { useEffect, useState } from "react";
+import type { ElementType } from "react";
 import { HasPermission, NavLink } from "src/components";
 import { T } from "src/locale";
 import {
@@ -16,193 +22,73 @@ import {
 	ADMIN,
 	CERTIFICATES,
 	DEAD_HOSTS,
-	type MANAGE,
 	PROXY_HOSTS,
 	REDIRECTION_HOSTS,
-	type Section,
 	STREAMS,
+	type Section,
 	VIEW,
 } from "src/modules/Permissions";
+import styles from "./SiteMenu.module.css";
 
-interface MenuItem {
-	label: string;
-	icon?: React.ElementType;
-	to?: string;
-	items?: MenuItem[];
-	permissionSection?: Section | typeof ADMIN;
-	permission?: typeof VIEW | typeof MANAGE;
-}
-
-const menuItems: MenuItem[] = [
-	{
-		to: "/",
-		icon: IconHome,
-		label: "dashboard",
-	},
-	{
-		icon: IconDeviceDesktop,
-		label: "hosts",
-		items: [
-			{
-				to: "/nginx/proxy",
-				label: "proxy-hosts",
-				permissionSection: PROXY_HOSTS,
-				permission: VIEW,
-			},
-			{
-				to: "/nginx/redirection",
-				label: "redirection-hosts",
-				permissionSection: REDIRECTION_HOSTS,
-				permission: VIEW,
-			},
-			{
-				to: "/nginx/stream",
-				label: "streams",
-				permissionSection: STREAMS,
-				permission: VIEW,
-			},
-			{
-				to: "/nginx/404",
-				label: "dead-hosts",
-				permissionSection: DEAD_HOSTS,
-				permission: VIEW,
-			},
-		],
-	},
-	{
-		to: "/access",
-		icon: IconLock,
-		label: "access-lists",
-		permissionSection: ACCESS_LISTS,
-		permission: VIEW,
-	},
-	{
-		to: "/certificates",
-		icon: IconShield,
-		label: "certificates",
-		permissionSection: CERTIFICATES,
-		permission: VIEW,
-	},
-	{
-		to: "/users",
-		icon: IconUser,
-		label: "users",
-		permissionSection: ADMIN,
-	},
-	{
-		to: "/audit-log",
-		icon: IconBook,
-		label: "auditlogs",
-		permissionSection: ADMIN,
-	},
-	{
-		to: "/settings",
-		icon: IconSettings,
-		label: "settings",
-		permissionSection: ADMIN,
-	},
+const links: Array<{ to: string; icon: ElementType; label: string; section?: Section }> = [
+	{ to: "/", icon: IconHome, label: "dashboard" },
+	{ to: "/nginx/proxy", icon: IconRoute, label: "proxy-hosts", section: PROXY_HOSTS },
+	{ to: "/nginx/redirection", icon: IconAdjustments, label: "redirection-hosts", section: REDIRECTION_HOSTS },
+	{ to: "/nginx/stream", icon: IconServer, label: "streams", section: STREAMS },
+	{ to: "/nginx/404", icon: IconActivityHeartbeat, label: "dead-hosts", section: DEAD_HOSTS },
+	{ to: "/access", icon: IconLock, label: "access-lists", section: ACCESS_LISTS },
+	{ to: "/certificates", icon: IconShield, label: "certificates", section: CERTIFICATES },
 ];
 
-const getMenuItem = (item: MenuItem, onClick?: () => void) => {
-	if (item.items && item.items.length > 0) {
-		return getMenuDropown(item, onClick);
-	}
-
-	return (
-		<HasPermission
-			key={`item-${item.label}`}
-			section={item.permissionSection}
-			permission={item.permission || VIEW}
-			hideError
-		>
-			<li className="nav-item">
-				<NavLink to={item.to} onClick={onClick}>
-					<span className="nav-link-icon d-md-none d-lg-inline-block">
-						{item.icon && React.createElement(item.icon, { height: 24, width: 24 })}
-					</span>
-					<span className="nav-link-title">
-						<T id={item.label} />
-					</span>
-				</NavLink>
-			</li>
-		</HasPermission>
-	);
-};
-
-const getMenuDropown = (item: MenuItem, onClick?: () => void) => {
-	const cns = cn("nav-item", "dropdown");
-	return (
-		<HasPermission
-			key={`item-${item.label}`}
-			section={item.permissionSection}
-			permission={item.permission || VIEW}
-			hideError
-		>
-			<li className={cns}>
-				<a
-					className="nav-link dropdown-toggle"
-					href={item.to}
-					data-bs-toggle="dropdown"
-					data-bs-auto-close="outside"
-					aria-expanded="false"
-					role="button"
-				>
-					<span className="nav-link-icon d-md-none d-lg-inline-block">
-						<IconDeviceDesktop height={24} width={24} />
-					</span>
-					<span className="nav-link-title">
-						<T id={item.label} />
-					</span>
-				</a>
-				<div className="dropdown-menu">
-					{item.items?.map((subitem, idx) => {
-						return (
-							<HasPermission
-								key={`${idx}-${subitem.to}`}
-								section={subitem.permissionSection}
-								permission={subitem.permission || VIEW}
-								hideError
-							>
-								<NavLink to={subitem.to} isDropdownItem onClick={onClick}>
-									<T id={subitem.label} />
-								</NavLink>
-							</HasPermission>
-						);
-					})}
-				</div>
-			</li>
-		</HasPermission>
-	);
-};
+const adminLinks = [
+	{ to: "/integrations", icon: IconApi, label: "nav.integrations" },
+	{ to: "/users", icon: IconUser, label: "users" },
+	{ to: "/audit-log", icon: IconBook, label: "auditlogs" },
+	{ to: "/settings", icon: IconSettings, label: "settings" },
+];
 
 export function SiteMenu() {
-	const closeMenu = () =>
-		setTimeout(() => {
-			const navbarToggler = document.querySelector<HTMLElement>(".navbar-toggler");
-			const navbarMenu = document.querySelector("#navbar-menu");
-			if (navbarToggler && navbarMenu?.classList.contains("show")) {
-				navbarToggler.click();
-			}
-		}, 300);
+	const [collapsed, setCollapsed] = useState(() => localStorage.getItem("nacl-sidebar-collapsed") === "true");
+
+	useEffect(() => {
+		document.documentElement.dataset.sidebarCollapsed = `${collapsed}`;
+		localStorage.setItem("nacl-sidebar-collapsed", `${collapsed}`);
+	}, [collapsed]);
+
+	const closeMobile = () => document.querySelector("[data-app-sidebar]")?.classList.remove("is-mobile-open");
 
 	return (
-		<header className="navbar-expand-md">
-			<div className="collapse navbar-collapse" id="navbar-menu">
-				<div className="navbar">
-					<div className="container-xl">
-						<div className="row flex-column flex-md-row flex-fill align-items-center">
-							<div className="col">
-								<ul className="navbar-nav">
-									{menuItems.length > 0 &&
-										menuItems.map((item) => {
-											return getMenuItem(item, closeMenu);
-										})}
-								</ul>
-							</div>
-						</div>
-					</div>
-				</div>
+		<aside className={styles.sidebar} data-app-sidebar>
+			<div className={styles.brand}>
+				<img src="/images/nacl-logo-text-horizontal.png" alt="NaCl" className={styles.fullLogo} />
+				<img src="/images/logo-no-text.svg" alt="NaCl" className={styles.markLogo} />
+				<button type="button" className={styles.mobileClose} onClick={closeMobile} aria-label="Close navigation"><IconX /></button>
 			</div>
-		</header>
+			<div className={styles.environment}><span /><div><strong><T id="nav.control-plane" /></strong><small><T id="nav.operational" /></small></div></div>
+			<nav className={styles.navigation} aria-label="Primary navigation">
+				<p className={styles.groupLabel}><T id="nav.edge" /></p>
+				{links.map((item) => (
+					<HasPermission key={item.to} section={item.section} permission={VIEW} hideError>
+						<NavLink to={item.to} className={styles.link} onClick={closeMobile}>
+							<item.icon size={21} stroke={1.8} />
+							<span><T id={item.label} /></span>
+						</NavLink>
+					</HasPermission>
+				))}
+				<HasPermission section={ADMIN} permission={VIEW} hideError>
+					<p className={styles.groupLabel}><T id="nav.administration" /></p>
+					{adminLinks.map((item) => (
+						<NavLink key={item.to} to={item.to} className={styles.link} onClick={closeMobile}>
+							<item.icon size={21} stroke={1.8} />
+							<span><T id={item.label} /></span>
+						</NavLink>
+					))}
+				</HasPermission>
+			</nav>
+			<button type="button" className={styles.collapse} onClick={() => setCollapsed((value) => !value)} aria-label="Toggle sidebar">
+				<IconChevronLeft size={19} />
+				<span><T id="nav.collapse" /></span>
+			</button>
+		</aside>
 	);
 }

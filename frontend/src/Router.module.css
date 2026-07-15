@@ -1,0 +1,4 @@
+.page { display: block; background: var(--tblr-body-bg); }
+.shell { display: flex; min-height: 100vh; }
+.workspace { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.workspace > main { width: 100%; max-width: 1600px; margin: 0 auto; flex: 1; }

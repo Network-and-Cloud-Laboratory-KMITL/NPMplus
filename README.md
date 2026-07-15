@@ -82,6 +82,35 @@ docker compose up -d
 12. Maybe setup crowdsec (see below)
 13. Please report all (migration) issues you may have
 
+## NaCl REST API and managed service publishing
+
+The supported API is available under `/api/v1`, with interactive OpenAPI documentation at `/api/docs` and the machine-readable contract at `/api/v1/openapi.json`. Existing `/api/*` endpoints remain available for compatibility but are deprecated for new integrations.
+
+Create integrations from **Integration Center** in the administrator UI. An integration has revocable keys, resource scopes, a request rate limit, and guardrails for domain suffixes, upstream CIDRs, ports, schemes, and approved templates. Key secrets are displayed once and are then stored only as a digest.
+
+Managed publishing is intended for trusted systems such as CloudStack. DNS remains the user's responsibility and must already route the requested domain to NPMplus. Publishing validates policy and HTTP-01 reachability, obtains or reuses an ACME certificate, tests NGINX configuration, and activates the route synchronously. Failed requests compensate their database, certificate, and configuration changes.
+
+```bash
+curl --request POST 'https://npm.example.com/api/v1/published-services/' \
+  --header 'Authorization: Bearer npmplus_KEY_PREFIX_KEY_SECRET' \
+  --header 'Idempotency-Key: cloudstack-vm-42-publish-v1' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "external_id": "vm-42",
+    "domain_names": ["vm-42.apps.example.com"],
+    "upstream": {"scheme": "http", "host": "10.20.4.42", "port": 8080},
+    "metadata": {"account": "customer-a", "project": "production"}
+  }'
+```
+
+Use the returned managed resource UUID or the integration-scoped `external_id` with `GET`, `PATCH`, or `DELETE /api/v1/published-services/{id}`. Repeating a mutation with the same `Idempotency-Key` and payload returns its original result; reusing the key with a different payload returns a conflict.
+
+Signed webhooks use `X-NaCl-Event-Id`, `X-NaCl-Timestamp`, and `X-NaCl-Signature: sha256=<digest>`. The digest is an HMAC-SHA256 over `<timestamp>.<raw-body>` using the webhook secret.
+
+## OIDC group provisioning
+
+The login screen prioritizes OIDC and keeps local credentials as an optional break-glass method. Configure `OIDC_GROUPS_CLAIM`, `OIDC_ADMIN_GROUPS`, and/or `OIDC_USER_GROUPS` to enable controlled just-in-time provisioning. Identities are linked using issuer plus the stable OIDC `sub` claim; group membership is reapplied at each sign-in. When no group mapping is configured, only pre-existing users may sign in, preserving the previous behavior.
+
 # Crowdsec
 <!--Note: Using Immich behind NPMplus with enabled appsec causes issues, see here: [#1241](https://github.com/ZoeyVid/NPMplus/discussions/1241) <br>-->
 Note: If you don't [disable sharing in crowdsec](https://docs.crowdsec.net/docs/next/configuration/crowdsec_configuration/#sharing), you may need to mention that [this](https://docs.crowdsec.net/docs/central_api/intro/#signal-meta-data) is sent to crowdsec in your privacy policy.

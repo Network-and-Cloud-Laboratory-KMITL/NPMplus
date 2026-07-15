@@ -5,6 +5,14 @@
 	"author": "Jamie Curnow <jc@jc21.com> and ZoeyVid <zoeyvid@zvcdn.de>",
 	"license": "AGPL-3.0 (and MIT)",
 	"type": "module",
+	"scripts": {
+		"build": "formatjs compile-folder src/locale/src src/locale/lang && tsc && vite build",
+		"dev": "vite",
+		"format": "biome format --write .",
+		"lint": "biome lint .",
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"@tabler/core": "1.4.0",
 		"@tabler/icons-react": "3.44.0",

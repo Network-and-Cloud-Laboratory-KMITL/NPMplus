@@ -1,0 +1,73 @@
+.sidebar {
+	position: sticky;
+	top: 0;
+	z-index: 1040;
+	display: flex;
+	flex-direction: column;
+	width: 264px;
+	height: 100vh;
+	padding: 1rem 0.85rem;
+	border-right: 1px solid rgba(99, 125, 155, 0.16);
+	background: color-mix(in srgb, var(--tblr-bg-surface) 97%, #1f9df9 3%);
+	transition: width 180ms ease, transform 180ms ease;
+}
+
+.brand { display: flex; align-items: center; height: 56px; padding: 0 0.55rem; }
+.fullLogo { width: 178px; max-height: 44px; object-fit: contain; object-position: left center; }
+.markLogo { display: none; width: 36px; height: 36px; }
+.mobileClose { display: none; margin-left: auto; border: 0; color: inherit; background: transparent; }
+
+.environment {
+	display: flex;
+	align-items: center;
+	gap: 0.7rem;
+	margin: 0.9rem 0.4rem 1.15rem;
+	padding: 0.75rem;
+	border: 1px solid var(--tblr-border-color);
+	border-radius: 12px;
+	background: var(--tblr-bg-surface-secondary);
+}
+.environment > span { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; background: #39b875; box-shadow: 0 0 0 5px rgba(57, 184, 117, 0.12); }
+.environment div { display: flex; min-width: 0; flex-direction: column; }
+.environment strong { font-size: 0.77rem; }
+.environment small { overflow: hidden; color: var(--tblr-secondary-color); font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; }
+
+.navigation { flex: 1; min-height: 0; overflow-y: auto; }
+.groupLabel { margin: 1.1rem 0.75rem 0.5rem; color: var(--tblr-secondary-color); font-size: 0.65rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
+.link { display: flex !important; align-items: center; gap: 0.8rem; min-height: 43px; margin: 0.15rem 0; padding: 0.65rem 0.78rem !important; border-radius: 10px; color: var(--tblr-secondary-color) !important; font-size: 0.84rem; font-weight: 600; }
+.link:hover { color: var(--tblr-body-color) !important; background: var(--tblr-bg-surface-secondary); }
+.link:global(.active) { color: #168fe4 !important; background: rgba(31, 157, 249, 0.11); box-shadow: inset 3px 0 #1f9df9; }
+.link svg { flex: 0 0 auto; }
+
+.collapse { display: flex; align-items: center; gap: 0.8rem; min-height: 42px; padding: 0.6rem 0.78rem; border: 0; border-radius: 10px; color: var(--tblr-secondary-color); background: transparent; font-size: 0.78rem; }
+.collapse:hover { color: var(--tblr-body-color); background: var(--tblr-bg-surface-secondary); }
+
+:global(html[data-sidebar-collapsed="true"]) .sidebar { width: 78px; }
+:global(html[data-sidebar-collapsed="true"]) .fullLogo,
+:global(html[data-sidebar-collapsed="true"]) .environment div,
+:global(html[data-sidebar-collapsed="true"]) .environment > span,
+:global(html[data-sidebar-collapsed="true"]) .groupLabel,
+:global(html[data-sidebar-collapsed="true"]) .link span,
+:global(html[data-sidebar-collapsed="true"]) .collapse span { display: none; }
+:global(html[data-sidebar-collapsed="true"]) .markLogo { display: block; }
+:global(html[data-sidebar-collapsed="true"]) .brand { justify-content: center; padding: 0; }
+:global(html[data-sidebar-collapsed="true"]) .environment { height: 1px; margin: 0.75rem 0.3rem; padding: 0; border: 0; background: var(--tblr-border-color); }
+:global(html[data-sidebar-collapsed="true"]) .link,
+:global(html[data-sidebar-collapsed="true"]) .collapse { justify-content: center; padding-inline: 0 !important; }
+:global(html[data-sidebar-collapsed="true"]) .collapse svg { transform: rotate(180deg); }
+
+@media (max-width: 991px) {
+	.sidebar { position: fixed; width: 280px; transform: translateX(-102%); box-shadow: 20px 0 60px rgba(10, 30, 50, 0.22); }
+	.sidebar:global(.is-mobile-open) { transform: translateX(0); }
+	.mobileClose { display: inline-grid; place-items: center; }
+	.collapse { display: none; }
+	:global(html[data-sidebar-collapsed="true"]) .sidebar { width: 280px; }
+	:global(html[data-sidebar-collapsed="true"]) .fullLogo { display: block; }
+	:global(html[data-sidebar-collapsed="true"]) .markLogo { display: none; }
+	:global(html[data-sidebar-collapsed="true"]) .environment div,
+	:global(html[data-sidebar-collapsed="true"]) .environment > span,
+	:global(html[data-sidebar-collapsed="true"]) .groupLabel,
+	:global(html[data-sidebar-collapsed="true"]) .link span { display: flex; }
+	:global(html[data-sidebar-collapsed="true"]) .environment { height: auto; margin: 0.9rem 0.4rem 1.15rem; padding: 0.75rem; border: 1px solid var(--tblr-border-color); background: var(--tblr-bg-surface-secondary); }
+	:global(html[data-sidebar-collapsed="true"]) .link { justify-content: flex-start; padding-inline: 0.78rem !important; }
+}

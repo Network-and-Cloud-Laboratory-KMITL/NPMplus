@@ -1,4 +1,4 @@
-import { IconLock, IconLogout, IconShieldLock, IconUser } from "@tabler/icons-react";
+import { IconBell, IconCommand, IconLock, IconLogout, IconMenu2, IconSearch, IconShieldLock, IconUser } from "@tabler/icons-react";
 import { LocalePicker, NavLink, ThemeSwitcher } from "src/components";
 import { useAuthState } from "src/context";
 import { useUser } from "src/hooks";
@@ -11,131 +11,30 @@ export function SiteHeader() {
 	const isAdmin = currentUser?.roles.includes("admin");
 	const { logout } = useAuthState();
 
+	const openMobile = () => document.querySelector("[data-app-sidebar]")?.classList.add("is-mobile-open");
+
 	return (
-		<header className="navbar navbar-expand-md d-print-none">
-			<div className="container-xl">
-				<button
-					className="navbar-toggler"
-					type="button"
-					data-bs-toggle="collapse"
-					data-bs-target="#navbar-menu"
-					aria-controls="navbar-menu"
-					aria-expanded="false"
-					aria-label="Toggle navigation"
-				>
-					<span className="navbar-toggler-icon" />
-				</button>
-				<div className="navbar-brand navbar-brand-autodark pe-0 pe-md-3">
-					<NavLink to="/">
-						<div className={styles.logo}>
-							<img
-								src="/images/logo-no-text.svg"
-								width={40}
-								height={40}
-								className="navbar-brand-image"
-								alt="Logo"
-							/>
-						</div>
-						NPMplus
-					</NavLink>
-				</div>
-				<div className="navbar-nav flex-row order-md-last">
-					<div className="d-none d-md-flex">
-						<div className="nav-item">
-							<LocalePicker />
-						</div>
-						<div className="nav-item">
-							<ThemeSwitcher />
-						</div>
-					</div>
-					<div className="nav-item d-md-flex">
-						<div className="nav-item dropdown">
-							<a
-								href="/"
-								className="nav-link d-flex lh-1"
-								data-bs-toggle="dropdown"
-								aria-label="Open user menu"
-							>
-								<span
-									className="avatar avatar-sm"
-									style={{
-										backgroundImage: `url(${currentUser?.avatar || "/images/default-avatar.jpg"})`,
-									}}
-								/>
-								<div className="d-none d-xl-block ps-2">
-									<div>{currentUser?.nickname}</div>
-									<div className="mt-1 small text-secondary">
-										<T id={isAdmin ? "role.admin" : "role.standard-user"} />
-									</div>
-								</div>
-							</a>
-							<div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-								<div className="d-md-none">
-									{/* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: This div is not interactive. */}
-									<div
-										className="p-2 pb-1 pe-1 d-flex align-items-center"
-										onClick={(e) => e.stopPropagation()}
-									>
-										<div className="ps-2 pe-1 me-auto">
-											<div>{currentUser?.nickname}</div>
-											<div className="mt-1 small text-secondary text-nowrap">
-												<T id={isAdmin ? "role.admin" : "role.standard-user"} />
-											</div>
-										</div>
-										<div className="d-flex align-items-center">
-											<ThemeSwitcher className="me-n2" />
-											<LocalePicker menuAlign="end" />
-										</div>
-									</div>
-									<div className="dropdown-divider" />
-								</div>
-								<a
-									href="?"
-									className="dropdown-item"
-									onClick={(e) => {
-										e.preventDefault();
-										showUserModal("me");
-									}}
-								>
-									<IconUser width={18} />
-									<T id="user.edit-profile" />
-								</a>
-								<a
-									href="?"
-									className="dropdown-item"
-									onClick={(e) => {
-										e.preventDefault();
-										showChangePasswordModal("me");
-									}}
-								>
-									<IconLock width={18} />
-									<T id="user.change-password" />
-								</a>
-								<a
-									href="?"
-									className="dropdown-item"
-									onClick={(e) => {
-										e.preventDefault();
-										showTwoFactorModal("me");
-									}}
-								>
-									<IconShieldLock width={18} />
-									<T id="user.two-factor" />
-								</a>
-								<div className="dropdown-divider" />
-								<a
-									href="?"
-									className="dropdown-item"
-									onClick={(e) => {
-										e.preventDefault();
-										logout();
-									}}
-								>
-									<IconLogout width={18} />
-									<T id="user.logout" />
-								</a>
-							</div>
-						</div>
+		<header className={styles.header}>
+			<button type="button" className={styles.menuButton} onClick={openMobile} aria-label="Open navigation"><IconMenu2 /></button>
+			<button type="button" className={styles.search} onClick={() => window.dispatchEvent(new Event("nacl-command-open"))}>
+				<IconSearch size={19} />
+				<span><T id="nav.search" /></span>
+				<kbd><IconCommand size={13} /> K</kbd>
+			</button>
+			<div className={styles.utilities}>
+				<div className={styles.desktopUtilities}><LocalePicker /><ThemeSwitcher /></div>
+				<NavLink to="/notifications" className={styles.iconButton}><IconBell size={21} /><span className={styles.notificationDot} /></NavLink>
+				<div className="dropdown">
+					<a href="/" className={styles.userButton} data-bs-toggle="dropdown" aria-label="Open user menu">
+						<span className="avatar avatar-sm" style={{ backgroundImage: `url(${currentUser?.avatar || "/images/default-avatar.jpg"})` }} />
+						<span><strong>{currentUser?.nickname}</strong><small><T id={isAdmin ? "role.admin" : "role.standard-user"} /></small></span>
+					</a>
+					<div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+						<button className="dropdown-item" type="button" onClick={() => showUserModal("me")}><IconUser width={18} /><T id="user.edit-profile" /></button>
+						<button className="dropdown-item" type="button" onClick={() => showChangePasswordModal("me")}><IconLock width={18} /><T id="user.change-password" /></button>
+						<button className="dropdown-item" type="button" onClick={() => showTwoFactorModal("me")}><IconShieldLock width={18} /><T id="user.two-factor" /></button>
+						<div className="dropdown-divider" />
+						<button className="dropdown-item" type="button" onClick={logout}><IconLogout width={18} /><T id="user.logout" /></button>
 					</div>
 				</div>
 			</div>

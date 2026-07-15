@@ -1,9 +1,11 @@
-import { IconHelp, IconSearch } from "@tabler/icons-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { IconBookmark, IconHelp, IconPlayerPause, IconPlayerPlay, IconSearch } from "@tabler/icons-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
 import { useState } from "react";
 import Alert from "react-bootstrap/Alert";
+import { useNavigate } from "react-router-dom";
 import { deleteProxyHost, toggleProxyHost } from "src/api/backend";
+import { platformApi } from "src/api/v1";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { getDirectory, useProxyHosts } from "src/hooks";
 import { T } from "src/locale";
@@ -14,9 +16,29 @@ import Table from "./Table";
 
 export default function TableWrapper() {
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
 	const [search, setSearch] = useState("");
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const { isFetching, isLoading, isError, error, data } = useProxyHosts(["owner", "access_lists", "certificate"]);
+	const [selectedIds, setSelectedIds] = useState<number[]>([]);
+	const { isFetching, isLoading, isError, error, data } = useProxyHosts([
+		"owner",
+		"access_lists",
+		"certificate",
+		"managed_resource",
+	]);
+	const savedViews = useQuery({
+		queryKey: ["v1", "saved-views", "proxy-hosts"],
+		queryFn: () => platformApi.listSavedViews("proxy-hosts"),
+	});
+	const saveView = useMutation({
+		mutationFn: () =>
+			platformApi.createSavedView({
+				resourceType: "proxy-hosts",
+				name: search || "All proxy hosts",
+				configuration: { search },
+			}),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["v1", "saved-views", "proxy-hosts"] }),
+	});
 
 	if (isLoading) {
 		return <LoadingPage />;
@@ -36,6 +58,13 @@ export default function TableWrapper() {
 		queryClient.invalidateQueries({ queryKey: ["proxy-hosts"] });
 		queryClient.invalidateQueries({ queryKey: ["proxy-host", id] });
 		showObjectSuccess("proxy-host", enabled ? "enabled" : "disabled");
+	};
+
+	const handleBulkToggle = async (enabled: boolean) => {
+		const targets = selectedIds.filter((id) => data?.find((host) => host.id === id)?.enabled !== enabled);
+		await Promise.all(targets.map((id) => toggleProxyHost(id, enabled)));
+		setSelectedIds([]);
+		await queryClient.invalidateQueries({ queryKey: ["proxy-hosts"] });
 	};
 
 	const handleDeleteClick = (id: number) => {
@@ -85,10 +114,13 @@ export default function TableWrapper() {
 		sorting,
 		onSortingChange: setSorting,
 		onEdit: (id: number) => showProxyHostModal(id),
+		onInspect: (id: number) => navigate(`/nginx/proxy/${id}`),
 		onClone: (id: number) => showProxyHostModal(id, true),
 		onDelete: handleDeleteClick,
 		onDisableToggle: handleDisableToggle,
 		onNew: () => showProxyHostModal("new"),
+		selectedIds,
+		onSelectionChange: setSelectedIds,
 	};
 
 	return (
@@ -104,19 +136,66 @@ export default function TableWrapper() {
 						</div>
 						<div className="col-md-auto col-sm-12">
 							<div className="ms-auto d-flex flex-wrap btn-list">
-								{data?.length ? (
-									<div className="input-group input-group-flat w-auto">
-										<span className="input-group-text input-group-text-sm">
-											<IconSearch size={16} />
+								{selectedIds.length > 0 && (
+									<>
+										<span className="badge bg-azure-lt align-self-center">
+											{selectedIds.length} <T id="table.selected" />
 										</span>
-										<input
-											id="advanced-table-search"
-											type="text"
-											className="form-control form-control-sm"
-											autoComplete="off"
-											onChange={(e: any) => setSearch(e.target.value.toLowerCase().trim())}
-										/>
-									</div>
+										<Button size="sm" onClick={() => handleBulkToggle(true)}>
+											<IconPlayerPlay size={16} />
+											<T id="action.enable" />
+										</Button>
+										<Button size="sm" onClick={() => handleBulkToggle(false)}>
+											<IconPlayerPause size={16} />
+											<T id="action.disable" />
+										</Button>
+									</>
+								)}
+								{data?.length ? (
+									<>
+										<select
+											className="form-select form-select-sm w-auto"
+											aria-label="Saved filter"
+											value=""
+											onChange={(event) => {
+												const view = savedViews.data?.data.find(
+													(item) => item.id === Number(event.target.value),
+												);
+												if (view) setSearch(`${view.configuration.search || ""}`);
+											}}
+										>
+											<option value="">
+												<T id="table.saved-views" />
+											</option>
+											{savedViews.data?.data.map((view) => (
+												<option key={view.id} value={view.id}>
+													{view.name}
+												</option>
+											))}
+										</select>
+										<div className="input-group input-group-flat w-auto">
+											<span className="input-group-text input-group-text-sm">
+												<IconSearch size={16} />
+											</span>
+											<input
+												id="advanced-table-search"
+												type="text"
+												className="form-control form-control-sm"
+												autoComplete="off"
+												value={search}
+												onChange={(e: any) => setSearch(e.target.value.toLowerCase())}
+											/>
+										</div>
+										{search && (
+											<Button
+												size="sm"
+												onClick={() => saveView.mutate()}
+												title="Save current filter"
+											>
+												<IconBookmark size={16} />
+											</Button>
+										)}
+									</>
 								) : null}
 								<Button size="sm" onClick={() => showHelpModal("ProxyHosts")}>
 									<IconHelp size={20} />

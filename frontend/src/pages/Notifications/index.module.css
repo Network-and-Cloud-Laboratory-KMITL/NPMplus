@@ -1,0 +1,24 @@
+.page { display: flex; flex-direction: column; gap: 1.4rem; max-width: 1080px; margin: 0 auto; }
+.page > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+.page header p { margin: 0 0 .35rem; color: #168fe4; font-size: .7rem; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.page h1 { margin: 0; font-size: 2rem; font-weight: 750; letter-spacing: -.035em; }
+.page header span { color: var(--tblr-secondary-color); }
+.unread { display: flex; align-items: center; gap: .4rem; padding: .55rem .75rem; border: 1px solid var(--tblr-border-color); border-radius: 10px; background: var(--tblr-bg-surface); font-size: .75rem; }
+.list { overflow: hidden; border: 1px solid var(--tblr-border-color); border-radius: 16px; background: var(--tblr-bg-surface); box-shadow: 0 10px 30px rgba(24,44,67,.055); }
+.item { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 1rem; padding: 1rem 1.2rem; border-bottom: 1px solid var(--tblr-border-color); }
+.item:last-child { border-bottom: 0; }
+.new { background: rgba(31,157,249,.035); box-shadow: inset 3px 0 #1f9df9; }
+.icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; }
+.success { color: #2d9d65; background: rgba(47,179,111,.1); }
+.warning { color: #d08a18; background: rgba(234,164,43,.12); }
+.error { color: #df4c5b; background: rgba(235,84,96,.1); }
+.info { color: #168fe4; background: rgba(31,157,249,.1); }
+.itemTitle { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.itemTitle time { color: var(--tblr-secondary-color); font-size: .68rem; white-space: nowrap; }
+.item p { margin: .2rem 0; color: var(--tblr-secondary-color); font-size: .8rem; }
+.item small { color: #168fe4; text-transform: capitalize; }
+.empty { padding: 5rem 1rem; text-align: center; }
+.empty svg { color: #2d9d65; }
+.empty h2 { margin: 1rem 0 .3rem; }
+.empty p { color: var(--tblr-secondary-color); }
+@media (max-width: 680px) { .page > header { align-items: flex-start; flex-direction: column; } .item { grid-template-columns: auto 1fr; } .item > button { grid-column: 2; justify-self: start; } .itemTitle { align-items: flex-start; flex-direction: column; gap: .2rem; } }

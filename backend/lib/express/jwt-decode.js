@@ -2,6 +2,9 @@ import Access from "../access.js";
 
 export default () => {
 	return async (req, res, next) => {
+		if (res.locals.access && res.locals.actor?.type === "integration") {
+			return next();
+		}
 		const token = req.signedCookies?.["__Host-Http-token"] || null;
 
 		//if (!token) {

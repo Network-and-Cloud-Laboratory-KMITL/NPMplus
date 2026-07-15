@@ -24,8 +24,12 @@ function decamelizeParams(params?: StringifiableRecord): StringifiableRecord | u
 }
 
 function buildUrl({ url, params }: BuildUrlArgs) {
-	const endpoint = url.replace(/^\/|\/$/g, "");
-	const baseUrl = `/api/${endpoint}`;
+	let endpoint = url.replace(/^\/|\/$/g, "");
+	const useV1 = endpoint !== "" && !endpoint.startsWith("tokens") && AuthStore.hasActiveToken();
+	if (useV1) {
+		endpoint = endpoint.replace(/^nginx\//, "").replace(/^audit-log/, "audit-events");
+	}
+	const baseUrl = `/api${useV1 ? "/v1" : ""}/${endpoint}`;
 	const apiUrl = queryString.stringifyUrl({
 		url: baseUrl,
 		query: decamelizeParams(params),
@@ -51,7 +55,9 @@ async function processResponse(response: Response, reload = true) {
 			}
 		}
 		const error = new Error(
-			typeof payload.error.messageI18n !== "undefined" ? payload.error.messageI18n : payload.error.message,
+			payload.detail ||
+				(typeof payload.error?.messageI18n !== "undefined" ? payload.error.messageI18n : payload.error?.message) ||
+				"The request could not be completed",
 		);
 		(error as any).payload = payload;
 		throw error;

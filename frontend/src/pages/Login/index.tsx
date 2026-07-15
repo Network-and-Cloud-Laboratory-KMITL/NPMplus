@@ -1,3 +1,4 @@
+import { IconArrowRight, IconKey, IconLock, IconRoute, IconShieldCheck } from "@tabler/icons-react";
 import { Field, Form, Formik } from "formik";
 import { useEffect, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -13,218 +14,179 @@ function TwoFactorForm() {
 	const [formErr, setFormErr] = useState("");
 	const { verifyTwoFactor, cancelTwoFactor } = useAuthState();
 
-	const onSubmit = async (values: any, { setSubmitting }: any) => {
+	const onSubmit = async (values: { code: string }, { setSubmitting }: any) => {
 		setFormErr("");
 		try {
 			await verifyTwoFactor(values.code);
 		} catch (err) {
-			if (err instanceof Error) {
-				setFormErr(err.message);
-			}
+			if (err instanceof Error) setFormErr(err.message);
 		}
 		setSubmitting(false);
 	};
 
-	useEffect(() => {
-		codeRef.current?.focus();
-	});
+	useEffect(() => codeRef.current?.focus(), []);
 
 	return (
-		<>
-			<h2 className="h2 text-center mb-4">
-				<T id="login.2fa-title" />
-			</h2>
-			<p className="text-secondary text-center mb-4">
-				<T id="login.2fa-description" />
-			</p>
-			{formErr !== "" && <Alert variant="danger">{formErr}</Alert>}
+		<div className={styles.authContent}>
+			<div className={styles.authIcon}>
+				<IconKey size={24} />
+			</div>
+			<p className={styles.eyebrow}>Secure verification</p>
+			<h1><T id="login.2fa-title" /></h1>
+			<p className={styles.description}><T id="login.2fa-description" /></p>
+			{formErr && <Alert variant="danger">{formErr}</Alert>}
 			<Formik initialValues={{ code: "" }} onSubmit={onSubmit}>
 				{({ isSubmitting }) => (
 					<Form>
-						<div className="mb-3">
-							<Field name="code" validate={validateString(6, 8)}>
-								{({ field, form }: any) => (
-									<label className="form-label">
-										<T id="login.2fa-code" />
-										<input
-											{...field}
-											ref={codeRef}
-											type="text"
-											autoComplete="one-time-code"
-											required
-											maxLength={8}
-											className={`form-control ${form.errors.code && form.touched.code ? "is-invalid" : ""}`}
-											placeholder={intl.formatMessage({ id: "login.2fa-code-placeholder" })}
-										/>
-										<div className="invalid-feedback">{form.errors.code}</div>
-									</label>
-								)}
-							</Field>
-						</div>
-						<div className="form-footer d-flex gap-2">
-							<Button type="button" fullWidth onClick={cancelTwoFactor} disabled={isSubmitting}>
-								<T id="cancel" />
-							</Button>
-							<Button type="submit" fullWidth color="azure" isLoading={isSubmitting}>
-								<T id="login.2fa-verify" />
-							</Button>
+						<Field name="code" validate={validateString(6, 8)}>
+							{({ field, form }: any) => (
+								<label className="form-label w-100">
+									<T id="login.2fa-code" />
+									<input
+										{...field}
+										ref={codeRef}
+										type="text"
+										inputMode="numeric"
+										autoComplete="one-time-code"
+										required
+										maxLength={8}
+										className={`${styles.input} form-control ${form.errors.code && form.touched.code ? "is-invalid" : ""}`}
+										placeholder={intl.formatMessage({ id: "login.2fa-code-placeholder" })}
+									/>
+									<div className="invalid-feedback">{form.errors.code}</div>
+								</label>
+							)}
+						</Field>
+						<div className="d-flex gap-2 mt-4">
+							<Button type="button" fullWidth onClick={cancelTwoFactor} disabled={isSubmitting}><T id="cancel" /></Button>
+							<Button type="submit" fullWidth color="azure" isLoading={isSubmitting}><T id="login.2fa-verify" /></Button>
 						</div>
 					</Form>
 				)}
 			</Formik>
-		</>
+		</div>
 	);
 }
 
-function LoginForm() {
+function PasswordForm() {
 	const emailRef = useRef<HTMLInputElement>(null);
 	const [formErr, setFormErr] = useState("");
 	const { login } = useAuthState();
-	const health = useHealth();
 
-	const redirectToOIDC = () => {
-		window.location.href = "/api/oidc";
-	};
+	useEffect(() => emailRef.current?.focus(), []);
 
-	const onSubmit = async (values: any, { setSubmitting }: any) => {
+	const onSubmit = async (values: { email: string; password: string }, { setSubmitting }: any) => {
 		setFormErr("");
 		try {
 			await login(values.email, values.password);
 		} catch (err) {
-			if (err instanceof Error) {
-				setFormErr(err.message);
-			}
+			if (err instanceof Error) setFormErr(err.message);
 		}
 		setSubmitting(false);
 	};
 
-	useEffect(() => {
-		if (health.data?.password === false) {
-			const getCookie = (name: string): string | undefined => {
-				const value = `; ${document.cookie}`;
-				const parts = value.split(`; ${name}=`);
-				if (parts.length === 2) return parts.pop()?.split(";").shift();
-				return undefined;
-			};
+	return (
+		<div className={styles.passwordPanel}>
+			{formErr && <Alert variant="danger">{formErr}</Alert>}
+			<Formik initialValues={{ email: "", password: "" }} onSubmit={onSubmit}>
+				{({ isSubmitting }) => (
+					<Form>
+						<Field name="email" validate={validateEmail()}>
+							{({ field, form }: any) => (
+								<label className="form-label w-100">
+									<T id="email-address" />
+									<input {...field} ref={emailRef} type="email" autoComplete="username" required className={`${styles.input} form-control ${form.errors.email && form.touched.email ? "is-invalid" : ""}`} />
+									<div className="invalid-feedback">{form.errors.email}</div>
+								</label>
+							)}
+						</Field>
+						<Field name="password" validate={validateString(8, 255)}>
+							{({ field, form }: any) => (
+								<label className="form-label w-100 mt-2">
+									<T id="password" />
+									<input {...field} type="password" autoComplete="current-password" required maxLength={255} className={`${styles.input} form-control ${form.errors.password && form.touched.password ? "is-invalid" : ""}`} />
+									<div className="invalid-feedback">{form.errors.password}</div>
+								</label>
+							)}
+						</Field>
+						<Button type="submit" fullWidth color="azure" isLoading={isSubmitting} className="mt-3"><T id="sign-in" /></Button>
+					</Form>
+				)}
+			</Formik>
+		</div>
+	);
+}
 
-			if (getCookie("__Host-npmplus_oidc_no_redirect") !== "true") {
-				redirectToOIDC();
-			}
-		} else {
-			emailRef.current?.focus();
-		}
-		window.cookieStore.delete("__Host-npmplus_oidc_no_redirect");
-	});
+function LoginForm() {
+	const health = useHealth();
+	const [showPassword, setShowPassword] = useState(!health.data?.oidc);
+	const providerName = health.data?.oidcName || "NaCl Auth";
+
+	useEffect(() => {
+		if (!health.data?.oidc && health.data?.password) setShowPassword(true);
+	}, [health.data?.oidc, health.data?.password]);
 
 	return (
-		<>
-			<h2 className="h2 text-center mb-4">
-				<T id="login.title" />
-			</h2>
-			{formErr !== "" && <Alert variant="danger">{formErr}</Alert>}
-			{health.data?.password && (
-				<Formik
-					initialValues={
-						{
-							email: "",
-							password: "",
-						} as any
-					}
-					onSubmit={onSubmit}
-				>
-					{({ isSubmitting }) => (
-						<Form>
-							<div className="mb-3">
-								<Field name="email" validate={validateEmail()}>
-									{({ field, form }: any) => (
-										<label className="form-label">
-											<T id="email-address" />
-											<input
-												{...field}
-												ref={emailRef}
-												type="email"
-												required
-												className={`form-control ${form.errors.email && form.touched.email ? " is-invalid" : ""}`}
-												placeholder={intl.formatMessage({ id: "email-address" })}
-											/>
-											<div className="invalid-feedback">{form.errors.email}</div>
-										</label>
-									)}
-								</Field>
-							</div>
-							<div className="mb-2">
-								<Field name="password" validate={validateString(8, 255)}>
-									{({ field, form }: any) => (
-										<>
-											<label className="form-label">
-												<T id="password" />
-												<input
-													{...field}
-													type="password"
-													autoComplete="current-password"
-													required
-													maxLength={255}
-													className={`form-control ${form.errors.password && form.touched.password ? " is-invalid" : ""}`}
-													placeholder={intl.formatMessage({ id: "password" })}
-												/>
-												<div className="invalid-feedback">{form.errors.password}</div>
-											</label>
-										</>
-									)}
-								</Field>
-							</div>
-							<div className="form-footer">
-								<Button type="submit" fullWidth color="azure" isLoading={isSubmitting}>
-									<T id="sign-in" />
-								</Button>
-							</div>
-						</Form>
-					)}
-				</Formik>
-			)}
-			{health.data?.password && health.data?.oidc && (
-				<div className="hr-text my-3">
-					<T id="or" />
-				</div>
-			)}
+		<div className={styles.authContent}>
+			<p className={styles.eyebrow}><T id="login.welcome" /></p>
+			<h1><T id="login.modern-title" /></h1>
+			<p className={styles.description}><T id="login.modern-description" /></p>
+
 			{health.data?.oidc && (
-				<div className="form-footer my-0">
-					<Button type="button" fullWidth color="azure" onClick={redirectToOIDC}>
-						<T id="sign-in-with-oidc" />
-					</Button>
-				</div>
+				<button className={styles.oidcButton} type="button" onClick={() => { window.location.href = "/api/oidc"; }}>
+					<span className={styles.oidcIcon}><IconShieldCheck size={24} /></span>
+					<span className={styles.oidcText}>
+						<small><T id="login.recommended" /></small>
+						<strong>{providerName}</strong>
+					</span>
+					<IconArrowRight size={22} />
+				</button>
 			)}
-		</>
+
+			{health.data?.password && (
+				<>
+					{health.data.oidc && (
+						<button className={styles.localToggle} type="button" aria-expanded={showPassword} onClick={() => setShowPassword((value) => !value)}>
+							<IconLock size={17} />
+							<T id={showPassword ? "login.hide-local" : "login.use-local"} />
+						</button>
+					)}
+					{showPassword && <PasswordForm />}
+				</>
+			)}
+
+			<div className={styles.securityNote}>
+				<IconShieldCheck size={18} />
+				<T id="login.security-note" />
+			</div>
+		</div>
 	);
 }
 
 export default function Login() {
 	const { twoFactorChallenge } = useAuthState();
-	// const health = useHealth();
-
-	// const getVersion = () => {
-	// 	if (!health.data) {
-	// 		return "";
-	// 	}
-	// 	return health.data.version;
-	// };
 
 	return (
-		<Page className="page page-center">
-			<div className="container container-tight py-4">
-				<div className="d-flex justify-content-between align-items-center mb-4 ps-4 pe-3">
-					<img className={styles.logo} src="/images/nacl-logo-text-horizontal.png" alt="NaCl Logo" />
-					<div className="d-flex align-items-center gap-1">
-						<LocalePicker />
-						<ThemeSwitcher />
+		<Page className={styles.page}>
+			<div className={styles.orbOne} />
+			<div className={styles.orbTwo} />
+			<header className={styles.topbar}>
+				<img src="/images/nacl-logo-text-horizontal.png" alt="Network And Cloud Laboratory" />
+				<div className="d-flex align-items-center gap-1"><LocalePicker /><ThemeSwitcher /></div>
+			</header>
+			<main className={styles.shell}>
+				<section className={styles.brandPanel}>
+					<div className={styles.productBadge}><span /><T id="login.platform-label" /></div>
+					<h2><T id="login.brand-title" /></h2>
+					<p><T id="login.brand-description" /></p>
+					<div className={styles.featureGrid}>
+						<div><IconRoute /><span><strong><T id="login.feature-routing" /></strong><small><T id="login.feature-routing-copy" /></small></span></div>
+						<div><IconShieldCheck /><span><strong><T id="login.feature-security" /></strong><small><T id="login.feature-security-copy" /></small></span></div>
 					</div>
-				</div>
-				<div className="card card-md">
-					<div className="card-body">{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}</div>
-				</div>
-				<div className="text-center text-secondary mt-3">Username & Password login is not enabled. Please use NaCl Auth to login.</div>
-				{/* <div className="text-center text-secondary mt-3">{getVersion()}</div> */}
-			</div>
+				</section>
+				<section className={styles.authCard}>{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}</section>
+			</main>
+			<footer className={styles.footer}><T id="login.footer" /></footer>
 		</Page>
 	);
 }

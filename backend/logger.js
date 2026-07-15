@@ -17,6 +17,7 @@ const ipRanges = new signale.Signale({ scope: "IP Ranges     ", ...opts });
 const remoteVersion = new signale.Signale({ scope: "Remote Version", ...opts });
 const gravatar = new signale.Signale({ scope: "Gravatar      ", ...opts });
 const oidc = new signale.Signale({ scope: "OIDC          ", ...opts });
+const health = new signale.Signale({ scope: "Health        ", ...opts });
 
 const debug = (logger, ...args) => {
 	if (logger !== express) logger.debug(...args);
@@ -37,4 +38,5 @@ export {
 	remoteVersion,
 	gravatar,
 	oidc,
+	health,
 };

@@ -1,4 +1,4 @@
-import { IconCopy, IconDotsVertical, IconEdit, IconPower, IconTrash } from "@tabler/icons-react";
+import { IconActivityHeartbeat, IconCopy, IconDotsVertical, IconEdit, IconPower, IconTrash } from "@tabler/icons-react";
 import {
 	createColumnHelper,
 	getCoreRowModel,
@@ -27,6 +27,7 @@ interface Props {
 	isFiltered?: boolean;
 	isFetching?: boolean;
 	onEdit?: (id: number) => void;
+	onInspect?: (id: number) => void;
 	onClone?: (id: number) => void;
 	onDelete?: (id: number) => void;
 	onDisableToggle?: (id: number, enabled: boolean) => void;
@@ -36,11 +37,14 @@ interface Props {
 	showHeader?: boolean;
 	groupBy?: (row: ProxyHost) => string;
 	renderGroupLabel?: (key: string) => ReactNode;
+	selectedIds?: number[];
+	onSelectionChange?: (ids: number[]) => void;
 }
 export default function Table({
 	data,
 	isFetching,
 	onEdit,
+	onInspect,
 	onClone,
 	onDelete,
 	onDisableToggle,
@@ -51,10 +55,40 @@ export default function Table({
 	showHeader,
 	groupBy,
 	renderGroupLabel,
+	selectedIds = [],
+	onSelectionChange,
 }: Props) {
 	const columnHelper = createColumnHelper<ProxyHost>();
 	const columns = useMemo(
 		() => [
+			columnHelper.display({
+				id: "select",
+				header: () => (
+					<input
+						type="checkbox"
+						className="form-check-input"
+						aria-label="Select all proxy hosts"
+						checked={data.length > 0 && data.every((row) => selectedIds.includes(row.id))}
+						onChange={(event) => onSelectionChange?.(event.target.checked ? data.map((row) => row.id) : [])}
+					/>
+				),
+				cell: (info) => (
+					<input
+						type="checkbox"
+						className="form-check-input"
+						aria-label={`Select ${info.row.original.domainNames.join(", ")}`}
+						checked={selectedIds.includes(info.row.original.id)}
+						onChange={(event) =>
+							onSelectionChange?.(
+								event.target.checked
+									? [...selectedIds, info.row.original.id]
+									: selectedIds.filter((id) => id !== info.row.original.id),
+							)
+						}
+					/>
+				),
+				meta: { className: "w-1" },
+			}),
 			columnHelper.accessor((row: any) => row.owner.name, {
 				id: "owner",
 				cell: (info: any) => {
@@ -70,7 +104,16 @@ export default function Table({
 				header: intl.formatMessage({ id: "column.source" }),
 				cell: (info: any) => {
 					const value = info.row.original;
-					return <DomainsFormatter domains={value.domainNames} createdOn={value.createdOn} />;
+					return (
+						<div>
+							<DomainsFormatter domains={value.domainNames} createdOn={value.createdOn} />
+							{value.managedResource && (
+								<span className="badge bg-azure-lt mt-1">
+									Managed · {value.managedResource.externalId}
+								</span>
+							)}
+						</div>
+					);
 				},
 			}),
 			columnHelper.accessor(
@@ -176,6 +219,17 @@ export default function Table({
 									href="#"
 									onClick={(e) => {
 										e.preventDefault();
+										onInspect?.(info.row.original.id);
+									}}
+								>
+									<IconActivityHeartbeat size={16} />
+									<T id="proxy-host.inspect" />
+								</a>
+								<a
+									className="dropdown-item"
+									href="#"
+									onClick={(e) => {
+										e.preventDefault();
 										onEdit?.(info.row.original.id);
 									}}
 								>
@@ -227,7 +281,7 @@ export default function Table({
 				},
 			}),
 		],
-		[columnHelper, onEdit, onClone, onDisableToggle, onDelete],
+		[columnHelper, onEdit, onInspect, onClone, onDisableToggle, onDelete, data, selectedIds, onSelectionChange],
 	);
 
 	const tableInstance = useReactTable<ProxyHost>({

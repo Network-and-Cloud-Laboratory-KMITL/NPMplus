@@ -8,6 +8,7 @@ import AccessList from "./access_list.js";
 import Certificate from "./certificate.js";
 import now from "./now_helper.js";
 import User from "./user.js";
+import ManagedResource from "./managed-resource.js";
 
 Model.knex(db());
 
@@ -86,11 +87,11 @@ class ProxyHost extends Model {
 	}
 
 	static get defaultAllowGraph() {
-		return "[owner,access_lists.[clients,items],certificate]";
+		return "[owner,access_lists.[clients,items],certificate,managed_resource]";
 	}
 
 	static get defaultExpand() {
-		return ["owner", "certificate", "access_lists.[clients,items]"];
+		return ["owner", "certificate", "access_lists.[clients,items]", "managed_resource"];
 	}
 
 	static get defaultOrder() {
@@ -135,6 +136,15 @@ class ProxyHost extends Model {
 				modify: (qb) => {
 					qb.where("certificate.is_deleted", 0);
 				},
+			},
+			managed_resource: {
+				relation: Model.HasOneRelation,
+				modelClass: ManagedResource,
+				join: {
+					from: "proxy_host.id",
+					to: "managed_resource.resource_id",
+				},
+				modify: (qb) => qb.where("managed_resource.resource_type", "proxy_host"),
 			},
 		};
 	}

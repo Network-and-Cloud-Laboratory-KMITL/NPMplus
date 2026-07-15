@@ -3,6 +3,7 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 import errs from "../lib/error.js";
 import internalToken from "../internal/token.js";
+import provisionOidcUser from "../internal/oidc-user.js";
 import { oidc as logger } from "../logger.js";
 
 const router = express.Router({
@@ -45,7 +46,7 @@ router
 			const code_verifier = client.randomPKCECodeVerifier();
 			const parameters = {
 				redirect_uri: `https://${process.env.OIDC_REDIRECT_DOMAIN}/api/oidc/callback`,
-				scope: "openid email",
+				scope: process.env.OIDC_SCOPES || "openid email profile groups",
 				state: client.randomState(),
 				nonce: client.randomNonce(),
 				code_challenge_method: "S256",
@@ -141,7 +142,8 @@ router
 
 			logger.info(`Successful authentication for email: ${claims.email.toLowerCase().trim()}`);
 
-			const data = await internalToken.getTokenFromOAuthClaim({ identity: claims.email.toLowerCase().trim() });
+			const user = await provisionOidcUser(claims, process.env.OIDC_ISSUER_URL);
+			const data = await internalToken.getTokenFromUser(user);
 
 			res.cookie("__Host-Http-token", data.token, {
 				signed: true,

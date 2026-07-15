@@ -110,8 +110,15 @@ services:
 #      - "NODE_TLS_REJECT_UNAUTHORIZED=0" # if your issuer uses a self signed cert you may need to set this, but please note that this will disable cert verification for all requests done by the backend (not nginx), like to github for version checks, gravatar, reachability checks or cloudflare for IP updates
 #      - "OIDC_CLIENT_ID=..." # client id for oidc
 #      - "OIDC_CLIENT_SECRET=..." # client secret for oidc
+#      - "OIDC_PROVIDER_NAME=NaCl Auth" # provider label shown on the OIDC-first login page
+#      - "OIDC_SCOPES=openid email profile groups" # OIDC scopes requested during authorization
+#      - "OIDC_GROUPS_CLAIM=groups" # claim containing group names; dotted claim paths are supported
+#      - "OIDC_ADMIN_GROUPS=nacl-edge-admins" # comma-separated groups mapped to administrator access
+#      - "OIDC_USER_GROUPS=nacl-edge-users" # comma-separated groups mapped to standard user access
 #      - "OIDC_REQUIRE_VERIFIED_EMAIL=false" # requires the email sent by the OIDC Provider to be marked as verified, default true
 #      - "OIDC_DISABLE_PASSWORD=true" # disables plain email/password login, default false
+#      - "PUBLISH_SKIP_DNS_PREFLIGHT=true" # skips managed-publishing DNS/HTTP-01 readiness checks, testing only and not recommended
+#      - "WEBHOOK_ALLOW_HTTP=true" # permits insecure HTTP webhook destinations, default false and not recommended
 #      - "AUTH_REQUEST_ANUBIS_UPSTREAM=http://127.0.0.1:8923" # scheme + ip/hostname/domain (+ port) to internal anubis, without path, this is unrelated to OIDC
 #      - "AUTH_REQUEST_TINYAUTH_UPSTREAM=http://127.0.0.1:3000" # scheme + ip/hostname/domain (+ port) to internal tinyauth, without path, this is unrelated to OIDC
 #      - "AUTH_REQUEST_OAUTH2PROXY_UPSTREAM=http://127.0.0.1:4180" # scheme + ip/hostname/domain (+ port) to internal oauth2proxy, without path, this is unrelated to OIDC

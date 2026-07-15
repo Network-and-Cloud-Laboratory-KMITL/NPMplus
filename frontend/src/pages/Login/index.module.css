@@ -1,3 +1,235 @@
-.logo {
-	width: 200px;
+.page {
+	position: relative;
+	display: flex;
+	min-height: 100vh;
+	overflow: hidden;
+	background:
+		linear-gradient(135deg, rgba(31, 157, 249, 0.08), transparent 42%),
+		var(--tblr-body-bg);
+	color: var(--tblr-body-color);
+}
+
+.orbOne, .orbTwo {
+	position: fixed;
+	border-radius: 999px;
+	filter: blur(1px);
+	pointer-events: none;
+}
+
+.orbOne {
+	width: 32rem;
+	height: 32rem;
+	top: -18rem;
+	right: -10rem;
+	background: radial-gradient(circle, rgba(31, 157, 249, 0.2), transparent 68%);
+}
+
+.orbTwo {
+	width: 28rem;
+	height: 28rem;
+	bottom: -18rem;
+	left: -12rem;
+	background: radial-gradient(circle, rgba(77, 91, 219, 0.12), transparent 68%);
+}
+
+.topbar {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: min(1180px, calc(100% - 3rem));
+	margin: 0 auto;
+	padding: 1.4rem 0;
+}
+
+.topbar img {
+	width: 190px;
+	height: 48px;
+	object-fit: contain;
+	object-position: left center;
+}
+
+.shell {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
+	width: min(1120px, calc(100% - 3rem));
+	margin: auto;
+	border: 1px solid rgba(98, 119, 148, 0.18);
+	border-radius: 28px;
+	box-shadow: 0 30px 80px rgba(18, 38, 63, 0.16);
+	overflow: hidden;
+	background: var(--tblr-bg-surface);
+}
+
+.brandPanel {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-height: 590px;
+	padding: 4.6rem;
+	overflow: hidden;
+	color: #fff;
+	background:
+		radial-gradient(circle at 84% 16%, rgba(99, 193, 255, 0.34), transparent 30%),
+		linear-gradient(145deg, #0c2545 0%, #123d68 52%, #167ac0 100%);
+}
+
+.brandPanel::after {
+	content: "";
+	position: absolute;
+	width: 26rem;
+	height: 26rem;
+	right: -13rem;
+	bottom: -15rem;
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	border-radius: 50%;
+	box-shadow: 0 0 0 60px rgba(255, 255, 255, 0.025), 0 0 0 120px rgba(255, 255, 255, 0.018);
+}
+
+.productBadge {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	gap: 0.65rem;
+	padding: 0.5rem 0.85rem;
+	margin-bottom: 2rem;
+	border: 1px solid rgba(255, 255, 255, 0.18);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.08);
+	font-size: 0.76rem;
+	font-weight: 700;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+.productBadge > span {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #55d98a;
+	box-shadow: 0 0 0 5px rgba(85, 217, 138, 0.14);
+}
+
+.brandPanel h2 {
+	max-width: 620px;
+	margin: 0;
+	font-size: clamp(2.25rem, 4vw, 3.6rem);
+	font-weight: 760;
+	letter-spacing: -0.045em;
+	line-height: 1.05;
+}
+
+.brandPanel > p {
+	max-width: 540px;
+	margin: 1.5rem 0 2.5rem;
+	color: rgba(255, 255, 255, 0.72);
+	font-size: 1.04rem;
+	line-height: 1.7;
+}
+
+.featureGrid {
+	display: grid;
+	gap: 1rem;
+}
+
+.featureGrid > div {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	max-width: 440px;
+	padding: 0.95rem 1rem;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 14px;
+	background: rgba(255, 255, 255, 0.055);
+	backdrop-filter: blur(10px);
+}
+
+.featureGrid svg { flex: 0 0 auto; color: #74ccff; }
+.featureGrid span { display: flex; flex-direction: column; gap: 0.16rem; }
+.featureGrid strong { font-size: 0.92rem; }
+.featureGrid small { color: rgba(255, 255, 255, 0.62); }
+
+.authCard {
+	display: flex;
+	align-items: center;
+	min-height: 590px;
+	padding: 4rem;
+	background: color-mix(in srgb, var(--tblr-bg-surface) 96%, var(--tblr-primary) 4%);
+}
+
+.authContent { width: 100%; max-width: 410px; margin: 0 auto; }
+.authContent h1 { margin: 0; font-size: 2rem; font-weight: 740; letter-spacing: -0.035em; }
+.eyebrow { margin: 0 0 0.65rem; color: #1f9df9; font-size: 0.76rem; font-weight: 750; letter-spacing: 0.11em; text-transform: uppercase; }
+.description { margin: 0.9rem 0 2rem; color: var(--tblr-secondary-color); line-height: 1.65; }
+.authIcon { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 1.5rem; border-radius: 15px; color: #fff; background: linear-gradient(135deg, #1f9df9, #2472d6); box-shadow: 0 12px 28px rgba(31, 157, 249, 0.28); }
+
+.oidcButton {
+	display: flex;
+	align-items: center;
+	gap: 0.9rem;
+	width: 100%;
+	min-height: 72px;
+	padding: 0.75rem 1rem;
+	border: 0;
+	border-radius: 15px;
+	color: #fff;
+	background: linear-gradient(135deg, #168fe4, #2877dd);
+	box-shadow: 0 13px 30px rgba(31, 137, 223, 0.26);
+	transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.oidcButton:hover { transform: translateY(-2px); box-shadow: 0 17px 36px rgba(31, 137, 223, 0.32); }
+.oidcButton:focus-visible { outline: 3px solid rgba(31, 157, 249, 0.32); outline-offset: 3px; }
+.oidcIcon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.14); }
+.oidcText { display: flex; flex: 1; flex-direction: column; align-items: flex-start; }
+.oidcText small { color: rgba(255, 255, 255, 0.72); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.oidcText strong { font-size: 1rem; }
+
+.localToggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	width: 100%;
+	margin-top: 1.15rem;
+	padding: 0.7rem;
+	border: 0;
+	color: var(--tblr-secondary-color);
+	background: transparent;
+	font-size: 0.85rem;
+}
+.localToggle:hover { color: var(--tblr-body-color); }
+.passwordPanel { margin-top: 0.6rem; padding-top: 1.25rem; border-top: 1px solid var(--tblr-border-color); animation: reveal 180ms ease-out; }
+.input { min-height: 46px; border-radius: 10px; }
+.securityNote { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1.6rem; color: var(--tblr-secondary-color); font-size: 0.78rem; }
+.securityNote svg { color: #3db976; }
+
+.footer { position: relative; z-index: 2; padding: 1.2rem; color: var(--tblr-secondary-color); text-align: center; font-size: 0.76rem; }
+
+@keyframes reveal { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 900px) {
+	.shell { grid-template-columns: 1fr; width: min(570px, calc(100% - 2rem)); margin: 1.5rem auto; }
+	.brandPanel { min-height: auto; padding: 2.4rem; }
+	.brandPanel h2 { font-size: 2.2rem; }
+	.brandPanel > p { margin-bottom: 0; }
+	.featureGrid { display: none; }
+	.authCard { min-height: auto; padding: 2.8rem 2.4rem; }
+}
+
+@media (max-width: 560px) {
+	.topbar { width: calc(100% - 2rem); }
+	.topbar img { width: 150px; height: 40px; }
+	.brandPanel { padding: 2rem 1.5rem; }
+	.brandPanel h2 { font-size: 1.85rem; }
+	.authCard { padding: 2.4rem 1.5rem; }
+	.authContent h1 { font-size: 1.7rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.oidcButton, .passwordPanel { transition: none; animation: none; }
 }

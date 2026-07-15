@@ -19,6 +19,14 @@ app.use((req, _res, next) => {
 app.disable("x-powered-by");
 app.set("json spaces", 2);
 
+app.use((req, res, next) => {
+	const incoming = req.get("x-request-id");
+	const requestId = incoming && /^[A-Za-z0-9._-]{1,100}$/.test(incoming) ? incoming : crypto.randomUUID();
+	res.locals.requestId = requestId;
+	res.set("X-Request-Id", requestId);
+	next();
+});
+
 app.use(
 	fileUpload({
 		limits: { fileSize: 1024 * 1024 },
@@ -61,6 +69,18 @@ app.use("/", mainRoutes);
 // production error handler
 // no stacktraces leaked to user
 app.use((err, req, res, _) => {
+	if (req.path.startsWith("/api/v1")) {
+		return res
+			.status(err.status || 500)
+			.type("application/problem+json")
+			.send({
+				type: `https://nacl.example/problems/${err.name || "internal"}`,
+				title: err.public ? err.name : "Internal error",
+				status: err.status || 500,
+				detail: err.public ? err.message : "The request could not be completed",
+				request_id: res.locals.requestId,
+			});
+	}
 	const payload = {
 		error: {
 			code: err.status || 500,

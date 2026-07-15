@@ -1,4 +1,17 @@
-import { IconArrowsCross, IconBolt, IconBoltOff, IconDisc, IconLock, IconShield, IconUser } from "@tabler/icons-react";
+import {
+	IconApi,
+	IconArrowsCross,
+	IconBolt,
+	IconBoltOff,
+	IconBookmark,
+	IconDisc,
+	IconHeartbeat,
+	IconLock,
+	IconShield,
+	IconTemplate,
+	IconUser,
+	IconWebhook,
+} from "@tabler/icons-react";
 import cn from "classnames";
 import type { AuditLog } from "src/api/backend";
 import { useLocaleState } from "src/context";
@@ -8,7 +21,13 @@ const getEventValue = (event: AuditLog) => {
 	switch (event.objectType) {
 		case "access-list":
 		case "user":
+		case "integration":
+		case "host-template":
+		case "webhook":
+		case "saved-view":
 			return event.meta?.name;
+		case "health-check":
+			return `${event.meta?.resourceType?.replace("_", " ") || "resource"} #${event.meta?.resourceId || event.objectId}`;
 		case "proxy-host":
 		case "redirection-host":
 		case "dead-host":
@@ -18,7 +37,7 @@ const getEventValue = (event: AuditLog) => {
 		case "certificate":
 			return event.meta?.domainNames?.join(", ") || event.meta?.niceName || "N/A";
 		default:
-			return `UNKNOWN EVENT TYPE: ${event.objectType}`;
+			return `${event.objectType} #${event.objectId}`;
 	}
 };
 
@@ -57,6 +76,21 @@ const getIcon = (row: AuditLog) => {
 			break;
 		case "certificate":
 			ico = <IconShield size={16} className={c} />;
+			break;
+		case "integration":
+			ico = <IconApi size={16} className={c} />;
+			break;
+		case "host-template":
+			ico = <IconTemplate size={16} className={c} />;
+			break;
+		case "health-check":
+			ico = <IconHeartbeat size={16} className={c} />;
+			break;
+		case "webhook":
+			ico = <IconWebhook size={16} className={c} />;
+			break;
+		case "saved-view":
+			ico = <IconBookmark size={16} className={c} />;
 			break;
 	}
 
